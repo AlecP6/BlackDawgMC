@@ -295,6 +295,9 @@ body {
 
 .nav-label {
   font-size: 13.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .sidebar-footer {
