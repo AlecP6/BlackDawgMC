@@ -6,14 +6,14 @@
     { "src": "style.css",         "use": "@vercel/static" },
     { "src": "app.js",            "use": "@vercel/static" },
     { "src": "image.png",         "use": "@vercel/static" },
-    { "src": "gta5-map.jpg",      "use": "@vercel/static" }
+    { "src": "marble.png",        "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/(.*)",    "dest": "backend/server.js" },
     { "src": "/style.css",   "dest": "/style.css" },
     { "src": "/app.js",      "dest": "/app.js" },
     { "src": "/image.png",   "dest": "/image.png" },
-    { "src": "/gta5-map.jpg","dest": "/gta5-map.jpg" },
+    { "src": "/marble.png",  "dest": "/marble.png" },
     { "src": "/(.*)",        "dest": "/index.html" }
   ]
 }
