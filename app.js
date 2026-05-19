@@ -2104,7 +2104,10 @@ updateDate();
   }
 
   function updateAdminBtns() {
-    const isAdmin = currentUser?.is_admin;
+    const isAdmin = !!(currentUser?.is_admin);
+    // Barre entière : visible uniquement pour les admins
+    if (adminBar) adminBar.style.display = isAdmin ? '' : 'none';
+    // Boutons edit/delete : uniquement si des pages existent
     if (btnEdit) btnEdit.style.display = isAdmin && biblePages.length > 0 ? '' : 'none';
     if (btnDel)  btnDel.style.display  = isAdmin && biblePages.length > 0 ? '' : 'none';
   }
@@ -2340,6 +2343,7 @@ updateDate();
 
   // ── Sauvegarder ──
   saveBtn?.addEventListener('click', async () => {
+    if (!currentUser?.is_admin) { closeBibleModal(); return; }
     const title = titleInput.value.trim();
     if (!title) { errorEl.textContent = 'Titre requis.'; errorEl.style.display = ''; return; }
 
@@ -2378,11 +2382,7 @@ updateDate();
   });
 
   window._fetchBible = fetchBible;
-  window._initBibleAdminBar = function () {
-    if (adminBar && currentUser?.is_admin) adminBar.style.display = '';
-    else if (adminBar) adminBar.style.display = 'none';
-    updateAdminBtns();
-  };
+  window._initBibleAdminBar = updateAdminBtns;
 })();
 
 // ===== ADMIN COLLAPSIBLE SECTIONS =====
