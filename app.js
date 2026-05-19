@@ -2142,16 +2142,26 @@ updateDate();
       showToast('Fichier non supporté. Utilisez PNG, JPG ou WEBP.', 'error');
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      showToast('Image trop lourde (max 8 Mo).', 'error');
+    if (file.size > 30 * 1024 * 1024) {
+      showToast('Image trop lourde (max 30 Mo).', 'error');
       return;
     }
     const reader = new FileReader();
     reader.onload = (e) => {
-      pendingImageData = e.target.result;
-      previewImg.src             = pendingImageData;
-      previewWrap.style.display  = '';
-      dropContent.style.display  = 'none';
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width  = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        // Compression à 75% en JPEG (réduit ~60-70% la taille du fichier)
+        pendingImageData = canvas.toDataURL('image/jpeg', 0.75);
+        previewImg.src            = pendingImageData;
+        previewWrap.style.display = '';
+        dropContent.style.display = 'none';
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
