@@ -1,4 +1,4 @@
-// ===== CONFIG =====
+﻿// ===== CONFIG =====
 const API = '/api';
 
 // ===== ANIMATIONS UTILITAIRES =====
@@ -264,15 +264,15 @@ const topbarTitle = document.getElementById('topbarTitle');
 
 // Correspondance entre l'id de section et le titre affiché dans la topbar.
 const sectionTitles = {
-  'dashboard':     'Dashboard',
-  'comptabilite':  'Comptabilité',
-  'armement':      'Armement',
-  'groupes':       'Groupes',
+  'dashboard': 'Dashboard',
+  'comptabilite': 'Comptabilité',
+  'armement': 'Armement',
+  'groupes': 'Groupes',
   'resume-tables': 'Résumé Tables',
-  'vehicule':      'Véhicule',
-  'missions':      'Missions',
-  'territoires':   'Territoires',
-  'admin':         'Administration',
+  'vehicule': 'Véhicule',
+  'missions': 'Missions',
+  'territoires': 'Territoires',
+  'admin': 'Administration',
 };
 
 // Restore session on load
@@ -584,8 +584,8 @@ let weaponSearch = '';
 let assignTarget = null;    // id de l'arme dont la modale d'attribution est ouverte
 
 const CATEGORY_ICONS = {
-  'Arme à feu':   '🔫',
-  'Arme blanche': '🗡️',
+  'Arme à feu': '',
+  'Arme blanche': '',
 };
 
 async function fetchWeapons() {
@@ -653,7 +653,7 @@ function renderWeapons() {
     card.className  = `weapon-card ${w.assigned_to ? 'is-assigned' : 'is-free'}`;
     card.dataset.id = w.id;
 
-    const icon     = CATEGORY_ICONS[w.category] || '🔧';
+    const icon     = CATEGORY_ICONS[w.category] || '';
     // Génère les initiales du propriétaire depuis son nom RP (ex : "Jean Dupont" → "JD").
     const initials = w.assigned_to_name
       ? w.assigned_to_name.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2)
@@ -877,20 +877,20 @@ function renderGroups() {
           ${escapeHtml(g.name)}
         </span>
         <div class="group-card-actions">
-          <button class="btn-edit"  data-group-edit="${g.id}">✏️ Modifier</button>
+          <button class="btn-edit"  data-group-edit="${g.id}">Modifier</button>
           <button class="btn-delete" data-group-del="${g.id}">✕</button>
         </div>
       </div>
       <div class="group-card-body">
-        ${field('📍 Lieu de résidence',   g.residence)}
-        ${field('🗺️ Territoire contrôlé', g.territory)}
-        ${field('📞 Téléphone',           g.phone)}
-        ${field('💼 Business possédé',    g.business)}
-        ${field('🏢 Entreprise possédée', g.company)}
+        ${field(' Lieu de résidence',   g.residence)}
+        ${field(' Territoire contrôlé', g.territory)}
+        ${field(' Téléphone',           g.phone)}
+        ${field(' Business possédé',    g.business)}
+        ${field(' Entreprise possédée', g.company)}
       </div>
       ${g.notes ? `
       <div class="group-card-notes">
-        <span class="group-field-label">📝 Informations complémentaires</span>
+        <span class="group-field-label"> Informations complémentaires</span>
         <div class="group-notes-text">${escapeHtml(g.notes)}</div>
       </div>` : ''}
       <div class="group-card-footer">
@@ -1111,11 +1111,11 @@ function renderSummaries() {
         <div class="timeline-block-header">
           <div class="timeline-block-meta">
             <span class="timeline-block-title">${escapeHtml(s.title)}</span>
-            <span class="timeline-block-date">📅 ${formatEventDate(s.event_date)}</span>
+            <span class="timeline-block-date"> ${formatEventDate(s.event_date)}</span>
           </div>
           ${isOwn ? `
           <div class="timeline-block-actions">
-            <button class="btn-edit" data-summary-edit="${s.id}">✏️ Modifier</button>
+            <button class="btn-edit" data-summary-edit="${s.id}">Modifier</button>
             <button class="btn-delete" data-summary-del="${s.id}">✕</button>
           </div>` : ''}
         </div>
@@ -1269,9 +1269,9 @@ let vehicleSearch  = '';
 let vehicleAssignTarget = null;   // id du véhicule dont la modale d'attribution est ouverte
 
 const VEHICLE_ICONS = {
-  'Voiture': '🚗',
-  '4X4':     '🚙',
-  'Moto':    '🏍️',
+  'Voiture': '',
+  '4X4': '',
+  'Moto': '',
 };
 
 async function fetchVehicles() {
@@ -1320,7 +1320,7 @@ function renderVehicles() {
     card.className  = `weapon-card ${v.assigned_to ? 'is-assigned' : 'is-free'}`;
     card.dataset.id = v.id;
 
-    const icon     = VEHICLE_ICONS[v.category] || '🚗';
+    const icon     = VEHICLE_ICONS[v.category] || '';
     const initials = v.assigned_to_name
       ? v.assigned_to_name.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2)
       : '—';
@@ -1534,12 +1534,12 @@ function renderAdminUsers() {
       <td>${escapeHtml(u.rp_name)}</td>
       <td>
         <span class="badge ${u.is_admin ? 'badge-admin' : 'badge-member'}">
-          ${u.is_admin ? '🛡️ Admin' : '👤 Membre'}
+          ${u.is_admin ? ' Admin' : ' Membre'}
         </span>
       </td>
       <td>${new Date(u.created_at).toLocaleDateString('fr-FR')}</td>
       <td class="admin-actions">
-        <button class="btn-edit" data-reset-id="${u.id}" data-reset-name="${escapeHtml(u.username)}">🔑 Réinitialiser mdp</button>
+        <button class="btn-edit" data-reset-id="${u.id}" data-reset-name="${escapeHtml(u.username)}"> Réinitialiser mdp</button>
         ${u.id !== currentUser?.id ? `
           <button class="btn-edit" data-toggle-admin="${u.id}">${u.is_admin ? '⬇ Rétrograder' : '⬆ Promouvoir'}</button>
           <button class="btn-delete" data-admin-del="${u.id}">✕</button>
@@ -1817,7 +1817,7 @@ async function refreshDashboard() {
         const s = summData[0];
         summEl.innerHTML = `
           <div class="dash-summary-title">${escapeHtml(s.title)}</div>
-          <div class="dash-summary-date">📅 ${formatEventDate(s.event_date)} — ${escapeHtml(s.created_by_name || '—')}</div>
+          <div class="dash-summary-date"> ${formatEventDate(s.event_date)} — ${escapeHtml(s.created_by_name || '—')}</div>
           <div class="dash-summary-content">${escapeHtml(s.content.slice(0, 200))}${s.content.length > 200 ? '…' : ''}</div>`;
       } else {
         summEl.innerHTML = '<p class="dash-empty">Aucun résumé publié.</p>';
@@ -1899,8 +1899,8 @@ let missions      = [];
 let missionFilter = 'all';   // 'all' | 'en_cours' | 'termine' | 'echoue'
 
 // Labels d'affichage pour les statuts et priorités (utilisés dans les cartes et les selects).
-const MISSION_STATUS_LABELS = { en_cours: '⏳ En cours', termine: '✅ Terminée', echoue: '❌ Échouée' };
-const MISSION_PRIORITY_LABELS = { basse: '🟢 Basse', normale: '🟡 Normale', haute: '🔴 Haute' };
+const MISSION_STATUS_LABELS = { en_cours: ' En cours', termine: ' Terminée', echoue: ' Échouée' };
+const MISSION_PRIORITY_LABELS = { basse: ' Basse', normale: ' Normale', haute: ' Haute' };
 
 async function fetchMissions() {
   try {
@@ -1970,20 +1970,20 @@ function renderMissions() {
         <div class="mission-card-badges">
           <span class="mission-status-badge status-badge-${m.status}">${MISSION_STATUS_LABELS[m.status]}</span>
           ${currentUser?.id === m.created_by ? `
-            <button class="btn-edit" data-mission-edit="${m.id}">✏️</button>
+            <button class="btn-edit" data-mission-edit="${m.id}"></button>
             <button class="btn-delete" data-mission-del="${m.id}">✕</button>
           ` : ''}
         </div>
       </div>
       ${m.description ? `<div class="mission-card-desc">${escapeHtml(m.description)}</div>` : ''}
-      ${m.assigned_ids ? `<div class="mission-card-members">👥 ${escapeHtml(getMemberNames(m.assigned_ids))}</div>` : ''}
+      ${m.assigned_ids ? `<div class="mission-card-members"> ${escapeHtml(getMemberNames(m.assigned_ids))}</div>` : ''}
       <div class="mission-card-footer">
         <span>Par ${escapeHtml(m.created_by_name || '—')}</span>
         <div class="mission-status-controls">
           <select class="mission-status-select form-input form-select" data-mission-status="${m.id}">
-            <option value="en_cours"  ${m.status==='en_cours'  ? 'selected':''}>⏳ En cours</option>
-            <option value="termine"   ${m.status==='termine'   ? 'selected':''}>✅ Terminée</option>
-            <option value="echoue"    ${m.status==='echoue'    ? 'selected':''}>❌ Échouée</option>
+            <option value="en_cours"  ${m.status==='en_cours'  ? 'selected':''}> En cours</option>
+            <option value="termine"   ${m.status==='termine'   ? 'selected':''}> Terminée</option>
+            <option value="echoue"    ${m.status==='echoue'    ? 'selected':''}> Échouée</option>
           </select>
         </div>
       </div>`;
@@ -2379,7 +2379,7 @@ function initMapEditor() {
 
   btnToggle?.addEventListener('click', () => {
     editorMode = !editorMode;
-    btnToggle.textContent = editorMode ? '✕ Quitter éditeur' : '✏️ Mode édition zones';
+    btnToggle.textContent = editorMode ? '✕ Quitter éditeur' : 'Mode édition zones';
     btnToggle.classList.toggle('active', editorMode);
     const show = editorMode ? '' : 'none';
     [zoneSelect, btnStart, btnClear, btnSave].forEach(el => { if (el) el.style.display = show; });
