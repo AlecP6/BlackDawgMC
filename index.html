@@ -638,9 +638,36 @@
 <div class="form-group"><label class="form-label" for="bibleEditTitle">Titre de la page</label>
 <input type="text" id="bibleEditTitle" class="form-input" placeholder="Ex : Règlement intérieur..." autocomplete="off" />
 </div>
-<div class="form-group form-group-full"><label class="form-label" for="bibleEditContent">Contenu</label>
-<textarea id="bibleEditContent" class="form-input bible-textarea" placeholder="Rédigez le contenu de cette page..." rows="16"></textarea>
+
+<!-- Toggle mode texte / image -->
+<div class="bible-mode-toggle">
+<button class="bible-mode-btn active" id="bibleModeText">Texte</button>
+<button class="bible-mode-btn" id="bibleModeImage">Image (Canva)</button>
 </div>
+
+<!-- Mode texte -->
+<div class="form-group form-group-full" id="bibleTextArea">
+<label class="form-label" for="bibleEditContent">Contenu</label>
+<textarea id="bibleEditContent" class="form-input bible-textarea" placeholder="Rédigez le contenu de cette page..." rows="14"></textarea>
+</div>
+
+<!-- Mode image -->
+<div class="form-group form-group-full" id="bibleImageArea" style="display:none">
+<label class="form-label">Image exportée depuis Canva</label>
+<div class="bible-drop-zone" id="bibleDropZone">
+<input type="file" id="bibleImageInput" accept="image/png,image/jpeg,image/webp" style="display:none" />
+<div class="bible-drop-content" id="bibleDropContent">
+<div class="bible-drop-icon">+</div>
+<p>Glissez une image ici ou <span class="bible-drop-link">cliquez pour choisir</span></p>
+<p class="bible-drop-hint">PNG, JPG, WEBP — max 8 Mo</p>
+</div>
+<div class="bible-image-preview" id="bibleImagePreview" style="display:none">
+<img id="biblePreviewImg" src="" alt="Preview" />
+<button class="bible-preview-remove" id="bibleRemoveImg" title="Supprimer l'image">✕</button>
+</div>
+</div>
+</div>
+
 <div class="auth-error" id="biblePageError" style="display:none"></div>
 </div>
 <div class="modal-footer">
