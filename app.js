@@ -2141,48 +2141,46 @@ updateDate();
 
     isFlipping = true;
 
-    // Pages impliquées
     const frontPage = dir === 'forward' ? biblePages[viewLeft + 1] : biblePages[viewLeft];
     const backPage  = dir === 'forward' ? biblePages[nextLeft]     : biblePages[nextLeft + 1];
 
-    // Remplir les faces
-    setFlipFace(
-      flipFront,
-      document.getElementById('bibleFlipNumF'),
-      document.getElementById('bibleFlipTitleF'),
-      document.getElementById('bibleFlipBodyF'),
-      frontPage
-    );
-    setFlipFace(
-      flipBack,
-      document.getElementById('bibleFlipNumB'),
-      document.getElementById('bibleFlipTitleB'),
-      document.getElementById('bibleFlipBodyB'),
-      backPage
-    );
+    // Contenu des faces
+    setFlipFace(flipFront,
+      document.getElementById('bibleFlipNumF'), document.getElementById('bibleFlipTitleF'),
+      document.getElementById('bibleFlipBodyF'), frontPage);
+    setFlipFace(flipBack,
+      document.getElementById('bibleFlipNumB'), document.getElementById('bibleFlipTitleB'),
+      document.getElementById('bibleFlipBodyB'), backPage);
 
-    // Face arrière : direction de rotation
+    // Face arrière : orientation selon la direction
     flipBack.style.transform = dir === 'forward' ? 'rotateY(180deg)' : 'rotateY(-180deg)';
 
-    // Positionner la carte sur la bonne demi-page
-    flipCard.classList.remove('flip-from-right', 'flip-from-left', 'flip-animating');
+    // Positionnement (origin de rotation = côté reliure)
+    flipCard.classList.remove('flip-from-right', 'flip-from-left');
     flipCard.classList.add(dir === 'forward' ? 'flip-from-right' : 'flip-from-left');
-    flipCard.style.display = '';
 
-    // Préparer la page statique "en dessous" (nouvelle page qui va apparaître)
-    if (dir === 'forward') {
-      setHalf('right', biblePages[nextLeft + 1]);
-    } else {
-      setHalf('left', biblePages[nextLeft]);
-    }
+    // État initial : pas de transition, angle de départ 0°
+    flipCard.style.transition = 'none';
+    flipCard.style.transform  = 'rotateY(0deg)';
+    flipCard.style.display    = '';
 
-    // Force reflow puis démarre l'animation
+    // Page statique "en dessous" prête avant l'animation
+    if (dir === 'forward') setHalf('right', biblePages[nextLeft + 1]);
+    else                   setHalf('left',  biblePages[nextLeft]);
+
+    // Force le navigateur à calculer le layout AVANT de démarrer la transition
     void flipCard.offsetWidth;
-    flipCard.classList.add('flip-animating');
 
-    flipCard.addEventListener('animationend', () => {
-      flipCard.classList.remove('flip-animating', 'flip-from-right', 'flip-from-left');
-      flipCard.style.display = 'none';
+    // Démarre la transition
+    flipCard.style.transition = 'transform 0.7s cubic-bezier(0.645, 0.045, 0.355, 1.000)';
+    flipCard.style.transform  = dir === 'forward' ? 'rotateY(-180deg)' : 'rotateY(180deg)';
+
+    flipCard.addEventListener('transitionend', () => {
+      // Nettoyage
+      flipCard.style.transition = 'none';
+      flipCard.style.transform  = '';
+      flipCard.style.display    = 'none';
+      flipCard.classList.remove('flip-from-right', 'flip-from-left');
 
       viewLeft = nextLeft;
       setHalf('left',  biblePages[viewLeft]);
