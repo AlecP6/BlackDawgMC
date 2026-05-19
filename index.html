@@ -91,14 +91,10 @@
  </div>
 
  <nav class="sidebar-nav"><ul>
- <li>
- <a href="#" class="nav-item active" data-section="dashboard"><span class="nav-label">Dashboard</span>
- </a>
- </li>
- <li>
- <a href="#" class="nav-item" data-section="comptabilite"><span class="nav-label">Comptabilité</span>
- </a>
- </li>
+<li>
+<a href="#" class="nav-item active" data-section="comptabilite"><span class="nav-label">Comptabilité</span>
+</a>
+</li>
  <li>
  <a href="#" class="nav-item" data-section="armement"><span class="nav-label">Armement</span>
  </a>
@@ -109,14 +105,6 @@
  </li>
  <li>
  <a href="#" class="nav-item" data-section="resume-tables"><span class="nav-label">Résumé Tables</span>
- </a>
- </li>
- <li>
- <a href="#" class="nav-item" data-section="vehicule"><span class="nav-label">Véhicule</span>
- </a>
- </li>
- <li>
- <a href="#" class="nav-item" data-section="territoires"><span class="nav-label">Territoires</span>
  </a>
  </li>
  <li>
@@ -149,53 +137,10 @@
 
  <!-- Content area -->
  <main class="content" id="mainContent"><!-- Dashboard -->
- <section class="section active" id="section-dashboard"><div class="section-header"> <p class="section-desc">Vue d'ensemble de l'organisation.</p>
- </div>
- <div class="stats-grid" id="dashStats"><div class="stat-card stat-balance"><div class="stat-label">Solde total</div>
- <div class="stat-value" id="dashBalance">$0</div>
- </div>
- <div class="stat-card stat-income"><div class="stat-label">Armes en circulation</div>
- <div class="stat-value" id="dashWeapons">0</div>
- </div>
- <div class="stat-card stat-expense"><div class="stat-label">Véhicules en circulation</div>
- <div class="stat-value" id="dashVehicles">0</div>
- </div>
- <div class="stat-card"><div class="stat-label">Groupes actifs</div>
- <div class="stat-value" id="dashGroups">0</div>
- </div>
- <div class="stat-card"><div class="stat-label">Membres</div>
- <div class="stat-value" id="dashMembers">0</div>
- </div>
- <div class="stat-card"><div class="stat-label">Missions en cours</div>
- <div class="stat-value" id="dashMissions">0</div>
- </div>
- </div>
-
- <div class="dash-grid"><!-- Dernières transactions -->
- <div class="dash-card"><div class="dash-card-header"><h2> Dernières transactions</h2>
- </div>
- <div id="dashRecentTx" class="dash-list"></div>
- </div>
- <!-- Dernier résumé -->
- <div class="dash-card"><div class="dash-card-header"><h2> Dernier résumé publié</h2>
- </div>
- <div id="dashLastSummary" class="dash-summary-preview"></div>
- </div>
- <!-- Missions actives -->
- <div class="dash-card"><div class="dash-card-header"><h2> Missions actives</h2>
- </div>
- <div id="dashMissionsList" class="dash-list"></div>
- </div>
- <!-- Membres -->
- <div class="dash-card"><div class="dash-card-header"><h2> Membres</h2>
- </div>
- <div id="dashMembersList" class="dash-list"></div>
- </div>
- </div>
- </section>
+ 
 
  <!-- Comptabilité -->
- <section class="section" id="section-comptabilite"><div class="section-header"> <p class="section-desc">Gestion des finances et transactions du groupe.</p>
+ <section class="section active" id="section-comptabilite"><div class="section-header"> <p class="section-desc">Gestion des finances et transactions du groupe.</p>
  </div>
 
  <!-- Stats -->
@@ -375,11 +320,6 @@
  <div class="form-group"><label class="form-label" for="groupTerritory">Territoire contrôlé (description)</label>
  <input type="text" id="groupTerritory" class="form-input" placeholder="ex: Davis, Strawberry" autocomplete="off" />
  </div>
- <div class="form-group form-group-full"><label class="form-label">Zones sur la carte <span class="form-label-hint">(cliquez pour sélectionner)</span></label>
- <!-- Conteneur peuplé dynamiquement par buildZoneSelector() avec des chips cliquables.
- La sélection est lue par getSelectedZoneIds() lors de la sauvegarde. -->
- <div class="zone-selector" id="zoneSelector"></div>
- </div>
  <div class="form-group"><label class="form-label" for="groupPhone">Numéro de téléphone</label>
  <input type="text" id="groupPhone" class="form-input" placeholder="ex: 555-0199" autocomplete="off" inputmode="numeric" />
  </div>
@@ -460,69 +400,7 @@
  </section>
 
  <!-- Véhicule -->
- <section class="section" id="section-vehicule"><div class="section-header"> <p class="section-desc">Inventaire et gestion du parc automobile du groupe.</p>
- </div>
-
- <!-- Stats véhicules -->
- <div class="stats-grid"><div class="stat-card stat-balance"><div class="stat-label">Total véhicules</div>
- <div class="stat-value" id="vehicleStatTotal">0</div>
- </div>
- <div class="stat-card stat-income"><div class="stat-label">Attribués</div>
- <div class="stat-value" id="vehicleStatAssigned">0</div>
- </div>
- <div class="stat-card stat-expense"><div class="stat-label">Disponibles</div>
- <div class="stat-value" id="vehicleStatFree">0</div>
- </div>
- </div>
-
- <!-- Formulaire ajout véhicule -->
- <div class="form-card"><h2 class="form-title">Ajouter un véhicule</h2>
- <div class="form-grid"><div class="form-group"><label class="form-label" for="vehicleName">Nom du véhicule</label>
- <input type="text" id="vehicleName" class="form-input" placeholder="ex: Dodge Charger, Kawasaki Z900..." autocomplete="off" />
- </div>
- <div class="form-group"><label class="form-label" for="vehicleCategory">Catégorie</label>
- <select id="vehicleCategory" class="form-input form-select"><option value="">-- Catégorie --</option>
- <option value="Voiture">Voiture</option>
- <option value="4X4">4X4</option>
- <option value="Moto">Moto</option>
- </select>
- </div>
- <div class="form-group form-group-full"><label class="form-label" for="vehicleNotes">Notes</label>
- <input type="text" id="vehicleNotes" class="form-input" placeholder="Couleur, plaque, particularités... (optionnel)" autocomplete="off" />
- </div>
- </div>
- <div class="form-actions"><button class="btn-submit" id="btnAddVehicle">Ajouter le véhicule</button>
- </div>
- </div>
-
- <!-- Filtres véhicules -->
- <div class="weapons-toolbar"><div class="transactions-filters"><button class="filter-btn active" data-vfilter="all">Tous</button>
- <button class="filter-btn" data-vfilter="free">Disponibles</button>
- <button class="filter-btn" data-vfilter="assigned">Attribués</button>
- </div>
- <input type="text" id="vehicleSearch" class="form-input weapon-search" placeholder="Rechercher un véhicule..." />
- </div>
-
- <!-- Grille véhicules -->
- <div class="weapons-grid" id="vehiclesGrid"><div class="weapons-empty" id="vehiclesEmpty"><p>Aucun véhicule dans l'inventaire.</p>
- </div>
- </div>
-
- <!-- Modal attribution véhicule -->
- <div class="modal-overlay" id="vehicleAssignModal"><div class="modal-box"><div class="modal-header"><h3 id="vehicleAssignModalTitle">Attribuer le véhicule</h3>
- <button class="modal-close" id="vehicleAssignModalClose">✕</button>
- </div>
- <div class="modal-body"><label class="form-label" for="vehicleAssignSelect">Choisir un membre</label>
- <select id="vehicleAssignSelect" class="form-input form-select"><option value="">-- Aucun (retirer l'attribution) --</option>
- </select>
- </div>
- <div class="modal-footer"><button class="btn-cancel" id="vehicleAssignCancel">Annuler</button>
- <button class="btn-submit" id="btnConfirmVehicleAssign">Confirmer</button>
- </div>
- </div>
- </div>
-
- </section>
+ 
 
  <!-- Admin -->
  <section class="section" id="section-admin"><div class="section-header"> <p class="section-desc">Gestion des comptes membres.</p>
@@ -621,44 +499,7 @@
  </section>
 
  <!-- Territoires -->
- <section class="section" id="section-territoires"><div class="section-header"> <p class="section-desc">Carte interactive de Los Santos et Blaine County.</p>
- </div>
-
- <div class="map-toolbar"><div class="map-toolbar-left"><span class="map-coord-display" id="mapCoordDisplay">Survolez la carte pour voir les coordonnées</span>
- </div>
- <div class="map-toolbar-right"><button class="filter-btn" id="btnExportZones" title="Exporter mes tracés">Exporter zones</button>
- <button class="filter-btn" id="btnToggleEditor">Mode édition zones</button>
- <!-- Les contrôles d'édition sont masqués individuellement via style="display:none"
- et rendus visibles par initMapEditor() quand le mode édition est activé.
- display:contents sur le wrapper permet d'ignorer ce div dans le layout flex. -->
- <div id="editorControls" style="display:none; display:contents"><select id="editorZoneSelect" class="form-input form-select editor-zone-select" style="display:none"></select>
- <button class="btn-assign" id="btnStartDraw" style="display:none">▶ Tracer</button>
- <button class="btn-cancel" id="btnClearDraw" style="display:none">✕ Effacer</button>
- <button class="btn-submit" id="btnSaveZone" style="display:none">Sauvegarder</button>
- </div>
- </div>
- </div>
-
- <div class="map-wrapper"><div id="gtaMap"></div>
- </div>
-
- <!-- Modal export zones -->
- <div class="modal-overlay" id="exportZonesModal"><div class="modal-box modal-box-lg"><div class="modal-header"><h3> Exporter mes tracés</h3>
- <button class="modal-close" id="exportZonesClose">✕</button>
- </div>
- <div class="modal-body"><p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px">Sélectionne tout le texte ci-dessous (Ctrl+A) puis copie-le (Ctrl+C) et envoie-le.</p>
- <textarea id="exportZonesData" class="form-input form-textarea-lg" readonly style="font-size:11px;font-family:monospace;height:260px"></textarea>
- </div>
- <div class="modal-footer"><button class="btn-submit" id="btnCopyZones">Copier</button>
- </div>
- </div>
- </div>
-
- <div class="editor-coords-panel" id="editorCoordsPanel" style="display:none"><span class="editor-coords-title">Points tracés :</span>
- <code id="editorCoordsOutput">—</code>
- </div>
-
- </section>
+ 
 
  <!-- Missions -->
  <section class="section" id="section-missions"><div class="section-header"> <p class="section-desc">Suivi des missions et objectifs de l'organisation.</p>
