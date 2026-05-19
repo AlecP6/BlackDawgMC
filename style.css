@@ -1,4 +1,4 @@
-/* ===== RESET & BASE ===== */
+﻿/* ===== RESET & BASE ===== */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -51,11 +51,12 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image: url('marble.png');
+  background-image: url('https://images.unsplash.com/photo-1747696766706-5485b39bf358?w=1920&q=90');
   background-size: cover;
   background-position: center center;
   background-attachment: fixed;
   opacity: 0.55;
+  image-rendering: high-quality;
 }
 
 /* ===== LOADING SCREEN ===== */
@@ -178,7 +179,7 @@ body {
 .sidebar {
   width: var(--sidebar-width);
   min-height: 100vh;
-  background-image: url('marble.png'), linear-gradient(rgba(0,0,0,0.72), rgba(0,0,0,0.72));
+  background-image: url('https://images.unsplash.com/photo-1747696766706-5485b39bf358?w=1920&q=90'), linear-gradient(rgba(0,0,0,0.72), rgba(0,0,0,0.72));
   background-blend-mode: multiply;
   background-size: cover;
   background-position: center center;
@@ -260,7 +261,7 @@ body {
   transform: translateY(-50%);
   width: 3px;
   height: 70%;
-  background: linear-gradient(180deg, #88dd44, var(--accent));
+  background: linear-gradient(180deg, #ffffff, var(--accent));
   border-radius: 0 3px 3px 0;
   box-shadow: 0 0 8px var(--accent-glow);
   animation: navGlow 2.5s ease-in-out infinite;
@@ -477,7 +478,7 @@ body {
 }
 
 .auth-box {
-  background: linear-gradient(160deg, #101a10 0%, #0b110b 100%);
+  background: linear-gradient(160deg, #101010 0%, #0b0b0b 100%);
   border: 1px solid var(--border-light);
   border-top: 3px solid var(--accent);
   border-radius: var(--radius);
@@ -575,9 +576,9 @@ body {
 }
 
 .auth-btn {
-  background: linear-gradient(135deg, #4a9e18 0%, #2a7010 100%);
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
   color: #fff;
-  border: 1px solid rgba(120,220,60,0.25);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: var(--radius);
   font-family: 'Inter', sans-serif;
   font-size: 14px;
@@ -607,7 +608,8 @@ body {
 }
 
 .auth-btn:hover {
-  background: linear-gradient(135deg, #5ab820 0%, #389012 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  color: #000000;
   box-shadow: 0 5px 22px rgba(255,255,255,0.35);
   transform: translateY(-1px);
 }
@@ -692,7 +694,7 @@ body {
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #141e14 0%, #0f160f 100%);
+  background: linear-gradient(135deg, #111111 0%, #0a0a0a 100%);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px 22px;
@@ -743,7 +745,7 @@ body {
 
 /* ===== COMPTABILITÉ — FORMULAIRE ===== */
 .form-card {
-  background: linear-gradient(160deg, #141e14 0%, #0e150e 100%);
+  background: linear-gradient(160deg, #111111 0%, #0a0a0a 100%);
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
   border-radius: var(--radius);
@@ -874,9 +876,9 @@ body {
 }
 
 .btn-submit {
-  background: linear-gradient(135deg, #4a9e18 0%, #2e7010 100%);
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
   color: #fff;
-  border: 1px solid rgba(120,220,60,0.3);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: var(--radius);
   font-family: 'Inter', sans-serif;
   font-size: 13.5px;
@@ -905,7 +907,8 @@ body {
 }
 
 .btn-submit:hover {
-  background: linear-gradient(135deg, #5ab820 0%, #3a9012 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  color: #000000;
   box-shadow: 0 4px 18px rgba(255,255,255,0.35);
   transform: translateY(-1px);
 }
@@ -917,7 +920,7 @@ body {
 
 /* ===== COMPTABILITÉ — TABLEAU ===== */
 .transactions-card {
-  background: linear-gradient(160deg, #121a12 0%, #0d130d 100%);
+  background: linear-gradient(160deg, #111111 0%, #0a0a0a 100%);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
