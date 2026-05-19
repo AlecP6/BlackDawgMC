@@ -554,44 +554,81 @@
  <section class="section" id="section-bible">
  <div class="section-header"><p class="section-desc">Règlements, lore et documents officiels du Mamba Cult MC.</p></div>
 
- <!-- Livre -->
  <div class="bible-container">
-   <div class="bible-book" id="bibleBook">
-     <!-- Couverture quand vide -->
-     <div class="bible-cover" id="bibleCover">
-       <div class="bible-cover-inner">
-         <img src="image.png" alt="Mamba Cult MC" class="bible-cover-logo" />
-         <div class="bible-cover-title">LA BIBLE</div>
-         <div class="bible-cover-subtitle">MAMBA CULT MC</div>
-         <p class="bible-empty-hint" id="bibleEmptyHint">Aucune page pour l'instant.</p>
+
+   <!-- Couverture (état vide) -->
+   <div class="bible-cover" id="bibleCover">
+     <div class="bible-cover-inner">
+       <img src="image.png" alt="Mamba Cult MC" class="bible-cover-logo" />
+       <div class="bible-cover-title">LA BIBLE</div>
+       <div class="bible-cover-subtitle">MAMBA CULT MC</div>
+       <p class="bible-empty-hint" id="bibleEmptyHint">Aucune page pour l'instant.</p>
+     </div>
+   </div>
+
+   <!-- Livre ouvert — deux pages -->
+   <div class="bible-open-book" id="bibleOpenBook" style="display:none">
+
+     <!-- Page gauche -->
+     <div class="bible-half bible-half-left">
+       <div class="bible-pg-inner" id="bibleInnerLeft" style="display:none">
+         <div class="bible-pg-num-bar">
+           <span class="bible-pg-num" id="bibleNumLeft"></span>
+           <span class="bible-pg-title-sm" id="bibleTitleLeft"></span>
+         </div>
+         <div class="bible-pg-body" id="bibleBodyLeft"></div>
        </div>
+       <div class="bible-blank-half" id="bibleBlankLeft"></div>
      </div>
 
-     <!-- Page courante -->
-     <div class="bible-page-wrap" id="biblePageWrap" style="display:none">
-       <div class="bible-page" id="biblePage">
-         <div class="bible-page-header">
-           <span class="bible-page-num" id="biblePageNum">Page 1</span>
-           <span class="bible-page-title-display" id="biblePageTitleDisplay"></span>
+     <!-- Reliure -->
+     <div class="bible-book-spine"></div>
+
+     <!-- Page droite -->
+     <div class="bible-half bible-half-right">
+       <div class="bible-pg-inner" id="bibleInnerRight" style="display:none">
+         <div class="bible-pg-num-bar">
+           <span class="bible-pg-num" id="bibleNumRight"></span>
+           <span class="bible-pg-title-sm" id="bibleTitleRight"></span>
          </div>
-         <div class="bible-page-content" id="biblePageContent"></div>
+         <div class="bible-pg-body" id="bibleBodyRight"></div>
+       </div>
+       <div class="bible-blank-half" id="bibleBlankRight"></div>
+     </div>
+
+     <!-- Carte flip (absolue, animée) -->
+     <div class="bible-flip-card" id="bibleFlipCard" style="display:none">
+       <div class="bible-flip-face" id="bibleFlipFront">
+         <div class="bible-pg-num-bar">
+           <span class="bible-pg-num" id="bibleFlipNumF"></span>
+           <span class="bible-pg-title-sm" id="bibleFlipTitleF"></span>
+         </div>
+         <div class="bible-pg-body" id="bibleFlipBodyF"></div>
+       </div>
+       <div class="bible-flip-face face-b" id="bibleFlipBack">
+         <div class="bible-pg-num-bar">
+           <span class="bible-pg-num" id="bibleFlipNumB"></span>
+           <span class="bible-pg-title-sm" id="bibleFlipTitleB"></span>
+         </div>
+         <div class="bible-pg-body" id="bibleFlipBodyB"></div>
        </div>
      </div>
    </div>
 
    <!-- Navigation -->
    <div class="bible-nav" id="bibleNav" style="display:none">
-     <button class="bible-btn-prev" id="biblePrev" disabled title="Page précédente">←</button>
-     <span class="bible-nav-info" id="bibleNavInfo">1 / 1</span>
-     <button class="bible-btn-next" id="bibleNext" title="Page suivante">→</button>
+     <button class="bible-btn-prev" id="biblePrev" disabled>←</button>
+     <span class="bible-nav-info" id="bibleNavInfo"></span>
+     <button class="bible-btn-next" id="bibleNext">→</button>
    </div>
 
    <!-- Actions admin -->
    <div class="bible-admin-bar" id="bibleAdminBar" style="display:none">
      <button class="btn-submit bible-btn-add" id="bibleBtnAdd">+ Nouvelle page</button>
-     <button class="btn-cancel bible-btn-edit" id="bibleBtnEdit" style="display:none">Modifier cette page</button>
+     <button class="btn-cancel bible-btn-edit" id="bibleBtnEdit" style="display:none">Modifier</button>
      <button class="btn-delete bible-btn-del" id="bibleBtnDel" style="display:none">✕ Supprimer</button>
    </div>
+
  </div>
  </section>
 

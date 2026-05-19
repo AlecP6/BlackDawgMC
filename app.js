@@ -2001,19 +2001,16 @@ updateDate();
 
 // ===== BIBLE =====
 (function () {
-  let biblePages  = [];
-  let bibleIndex  = 0;
-  let bibleEditId = null;
-  let currentMode = 'text';  // 'text' | 'image'
-  let pendingImageData = null; // Data URL de l'image sélectionnée
+  let biblePages       = [];
+  let viewLeft         = 0;    // index de la page sur la gauche (toujours pair)
+  let bibleEditId      = null;
+  let isFlipping       = false;
+  let currentMode      = 'text';
+  let pendingImageData = null;
 
   // DOM — livre
   const coverEl    = document.getElementById('bibleCover');
-  const pageWrapEl = document.getElementById('biblePageWrap');
-  const pageEl     = document.getElementById('biblePage');
-  const pageNumEl  = document.getElementById('biblePageNum');
-  const titleDspEl = document.getElementById('biblePageTitleDisplay');
-  const contentEl  = document.getElementById('biblePageContent');
+  const openBook   = document.getElementById('bibleOpenBook');
   const navEl      = document.getElementById('bibleNav');
   const navInfoEl  = document.getElementById('bibleNavInfo');
   const prevBtn    = document.getElementById('biblePrev');
@@ -2023,6 +2020,9 @@ updateDate();
   const btnAdd     = document.getElementById('bibleBtnAdd');
   const btnEdit    = document.getElementById('bibleBtnEdit');
   const btnDel     = document.getElementById('bibleBtnDel');
+  const flipCard   = document.getElementById('bibleFlipCard');
+  const flipFront  = document.getElementById('bibleFlipFront');
+  const flipBack   = document.getElementById('bibleFlipBack');
 
   // DOM — modal
   const modal       = document.getElementById('biblePageModal');
@@ -2044,20 +2044,153 @@ updateDate();
   const previewImg  = document.getElementById('biblePreviewImg');
   const removeImgBtn = document.getElementById('bibleRemoveImg');
 
-  // ── Utilitaire : détecter si le contenu est une image ──
-  function isImageContent(s) {
-    return typeof s === 'string' && s.startsWith('data:image');
+  // ── Utilitaires ──
+  function isImageContent(s) { return typeof s === 'string' && s.startsWith('data:image'); }
+
+  function pageNum(page) {
+    const idx = biblePages.findIndex(p => p.id === page?.id);
+    return idx >= 0 ? idx + 1 : null;
   }
 
-  // ── Peuple le contenu de la page (texte ou image) ──
-  function setPageContent(page) {
-    pageNumEl.textContent  = `Page ${bibleIndex + 1}`;
-    titleDspEl.textContent = page.title;
+  // Peuple un body-element (texte ou image)
+  function setBody(el, page) {
+    if (!el) return;
+    if (!page) { el.innerHTML = ''; return; }
     if (isImageContent(page.content)) {
-      contentEl.innerHTML = `<img class="bible-page-img" src="${page.content}" alt="${escapeHtml(page.title)}" />`;
+      el.innerHTML = `<img class="bible-page-img" src="${page.content}" alt="${escapeHtml(page.title)}" />`;
     } else {
-      contentEl.textContent = page.content;
+      el.textContent = page.content;
     }
+  }
+
+  // Peuple une demi-page statique ('left' ou 'right')
+  function setHalf(side, page) {
+    const inner = document.getElementById(side === 'left' ? 'bibleInnerLeft'  : 'bibleInnerRight');
+    const blank = document.getElementById(side === 'left' ? 'bibleBlankLeft'  : 'bibleBlankRight');
+    const numEl = document.getElementById(side === 'left' ? 'bibleNumLeft'    : 'bibleNumRight');
+    const ttlEl = document.getElementById(side === 'left' ? 'bibleTitleLeft'  : 'bibleTitleRight');
+    const bdyEl = document.getElementById(side === 'left' ? 'bibleBodyLeft'   : 'bibleBodyRight');
+
+    if (!page || pageNum(page) === null) {
+      inner.style.display = 'none';
+      blank.style.display = '';
+    } else {
+      numEl.textContent = `Page ${pageNum(page)}`;
+      ttlEl.textContent = page.title;
+      setBody(bdyEl, page);
+      inner.style.display = '';
+      blank.style.display = 'none';
+    }
+  }
+
+  // Peuple une face du flip card
+  function setFlipFace(faceEl, numEl, ttlEl, bdyEl, page) {
+    if (!page) { faceEl.style.opacity = '0'; return; }
+    faceEl.style.opacity = '1';
+    numEl.textContent = `Page ${pageNum(page)}`;
+    ttlEl.textContent = page.title;
+    setBody(bdyEl, page);
+  }
+
+  function updateNav() {
+    const total = biblePages.length;
+    const leftNum  = viewLeft + 1;
+    const rightNum = Math.min(viewLeft + 2, total);
+    navInfoEl.textContent = leftNum === rightNum
+      ? `Page ${leftNum} / ${total}`
+      : `Pages ${leftNum}–${rightNum} / ${total}`;
+    prevBtn.disabled = viewLeft <= 0;
+    nextBtn.disabled = viewLeft + 2 >= total;
+  }
+
+  function updateAdminBtns() {
+    const isAdmin = currentUser?.is_admin;
+    if (btnEdit) btnEdit.style.display = isAdmin && biblePages.length > 0 ? '' : 'none';
+    if (btnDel)  btnDel.style.display  = isAdmin && biblePages.length > 0 ? '' : 'none';
+  }
+
+  // ── Rendu statique (sans animation) ──
+  function renderBible() {
+    if (biblePages.length === 0) {
+      coverEl.style.display  = '';
+      openBook.style.display = 'none';
+      navEl.style.display    = 'none';
+      if (emptyHint) emptyHint.style.display = '';
+      updateAdminBtns();
+      return;
+    }
+    // Clamp viewLeft to valid even index
+    viewLeft = Math.max(0, Math.min(viewLeft, biblePages.length - 1));
+    if (viewLeft % 2 !== 0) viewLeft--;
+
+    coverEl.style.display  = 'none';
+    openBook.style.display = '';
+    navEl.style.display    = '';
+
+    setHalf('left',  biblePages[viewLeft]);
+    setHalf('right', biblePages[viewLeft + 1]);
+    updateNav();
+    updateAdminBtns();
+  }
+
+  // ── Animation flip livre ──
+  function flipPage(dir) {
+    if (isFlipping) return;
+    const nextLeft = dir === 'forward' ? viewLeft + 2 : viewLeft - 2;
+    if (nextLeft < 0 || nextLeft > biblePages.length - 1) return;
+
+    isFlipping = true;
+
+    // Pages impliquées
+    const frontPage = dir === 'forward' ? biblePages[viewLeft + 1] : biblePages[viewLeft];
+    const backPage  = dir === 'forward' ? biblePages[nextLeft]     : biblePages[nextLeft + 1];
+
+    // Remplir les faces
+    setFlipFace(
+      flipFront,
+      document.getElementById('bibleFlipNumF'),
+      document.getElementById('bibleFlipTitleF'),
+      document.getElementById('bibleFlipBodyF'),
+      frontPage
+    );
+    setFlipFace(
+      flipBack,
+      document.getElementById('bibleFlipNumB'),
+      document.getElementById('bibleFlipTitleB'),
+      document.getElementById('bibleFlipBodyB'),
+      backPage
+    );
+
+    // Face arrière : direction de rotation
+    flipBack.style.transform = dir === 'forward' ? 'rotateY(180deg)' : 'rotateY(-180deg)';
+
+    // Positionner la carte sur la bonne demi-page
+    flipCard.classList.remove('flip-from-right', 'flip-from-left', 'flip-animating');
+    flipCard.classList.add(dir === 'forward' ? 'flip-from-right' : 'flip-from-left');
+    flipCard.style.display = '';
+
+    // Préparer la page statique "en dessous" (nouvelle page qui va apparaître)
+    if (dir === 'forward') {
+      setHalf('right', biblePages[nextLeft + 1]);
+    } else {
+      setHalf('left', biblePages[nextLeft]);
+    }
+
+    // Force reflow puis démarre l'animation
+    void flipCard.offsetWidth;
+    flipCard.classList.add('flip-animating');
+
+    flipCard.addEventListener('animationend', () => {
+      flipCard.classList.remove('flip-animating', 'flip-from-right', 'flip-from-left');
+      flipCard.style.display = 'none';
+
+      viewLeft = nextLeft;
+      setHalf('left',  biblePages[viewLeft]);
+      setHalf('right', biblePages[viewLeft + 1]);
+      updateNav();
+      updateAdminBtns();
+      isFlipping = false;
+    }, { once: true });
   }
 
   // ── Fetch ──
@@ -2071,51 +2204,38 @@ updateDate();
     } catch { console.error('Erreur chargement Bible.'); }
   }
 
-  // ── Rendu du livre ──
-  function renderBible(dir = null) {
-    const isEmpty = biblePages.length === 0;
+  // Navigation
+  prevBtn?.addEventListener('click', () => flipPage('backward'));
+  nextBtn?.addEventListener('click', () => flipPage('forward'));
 
-    if (isEmpty) {
-      coverEl.style.display    = '';
-      pageWrapEl.style.display = 'none';
-      navEl.style.display      = 'none';
-      if (emptyHint) emptyHint.style.display = '';
-      if (btnEdit) btnEdit.style.display = 'none';
-      if (btnDel)  btnDel.style.display  = 'none';
-      return;
-    }
+  document.addEventListener('keydown', (e) => {
+    const sec = document.getElementById('section-bible');
+    if (!sec?.classList.contains('active') || document.getElementById('biblePageModal')?.classList.contains('open')) return;
+    if (e.key === 'ArrowRight') flipPage('forward');
+    if (e.key === 'ArrowLeft')  flipPage('backward');
+  });
 
-    if (bibleIndex >= biblePages.length) bibleIndex = biblePages.length - 1;
-    if (bibleIndex < 0) bibleIndex = 0;
-
-    const page  = biblePages[bibleIndex];
-    const total = biblePages.length;
-
-    coverEl.style.display = 'none';
-    navEl.style.display   = '';
-    if (btnEdit) btnEdit.style.display = currentUser?.is_admin ? '' : 'none';
-    if (btnDel)  btnDel.style.display  = currentUser?.is_admin ? '' : 'none';
-    navInfoEl.textContent = `${bibleIndex + 1} / ${total}`;
-    prevBtn.disabled      = bibleIndex === 0;
-    nextBtn.disabled      = bibleIndex === total - 1;
-
-    if (dir && pageWrapEl.style.display !== 'none') {
-      const outClass = dir === 'next' ? 'flip-out-left' : 'flip-out-right';
-      const inClass  = dir === 'next' ? 'flip-in-right' : 'flip-in-left';
-      pageEl.classList.add(outClass);
-      pageEl.addEventListener('animationend', () => {
-        pageEl.classList.remove(outClass);
-        setPageContent(page);
-        pageEl.classList.add(inClass);
-        pageEl.addEventListener('animationend', () => {
-          pageEl.classList.remove(inClass);
-        }, { once: true });
-      }, { once: true });
-    } else {
-      setPageContent(page);
-      pageWrapEl.style.display = '';
-    }
+  // Admin – Edit / Delete opèrent sur la page droite en priorité, sinon gauche
+  function currentEditPage() {
+    return biblePages[viewLeft + 1] || biblePages[viewLeft] || null;
   }
+
+  btnDel?.addEventListener('click', () => {
+    const page = currentEditPage();
+    if (!page) return;
+    confirmAction('Supprimer cette page de la Bible ?', async () => {
+      try {
+        const res = await fetch(`${API}/bible/${page.id}`, { method: 'DELETE', headers: authHeaders() });
+        if (res.ok) {
+          biblePages.splice(biblePages.findIndex(p => p.id === page.id), 1);
+          if (viewLeft >= biblePages.length) viewLeft = Math.max(0, biblePages.length - 2);
+          if (viewLeft % 2 !== 0) viewLeft--;
+          renderBible();
+          showToast('Page supprimée.');
+        } else { showToast('Erreur lors de la suppression.', 'error'); }
+      } catch { showToast('Impossible de contacter le serveur.', 'error'); }
+    });
+  });
 
   // ── Switch mode texte / image dans la modal ──
   function switchMode(mode) {
@@ -2215,7 +2335,7 @@ updateDate();
   }
 
   btnAdd?.addEventListener('click', () => openBibleModal(null));
-  btnEdit?.addEventListener('click', () => { if (biblePages[bibleIndex]) openBibleModal(biblePages[bibleIndex]); });
+  btnEdit?.addEventListener('click', () => openBibleModal(currentEditPage()));
   modalClose?.addEventListener('click', closeBibleModal);
   modalCancel?.addEventListener('click', closeBibleModal);
   modal?.addEventListener('click', (e) => { if (e.target === modal) closeBibleModal(); });
@@ -2248,7 +2368,9 @@ updateDate();
         if (idx !== -1) biblePages[idx] = data;
       } else {
         biblePages.push(data);
-        bibleIndex = biblePages.length - 1;
+        // positionner sur la nouvelle page
+        const newIdx = biblePages.length - 1;
+        viewLeft = newIdx % 2 === 0 ? newIdx : newIdx - 1;
       }
       renderBible();
       closeBibleModal();
@@ -2260,40 +2382,11 @@ updateDate();
   // ── Supprimer ──
   btnDel?.addEventListener('click', () => {
     if (!biblePages[bibleIndex]) return;
-    const id = biblePages[bibleIndex].id;
-    confirmAction('Supprimer cette page de la Bible ?', async () => {
-      try {
-        const res = await fetch(`${API}/bible/${id}`, { method: 'DELETE', headers: authHeaders() });
-        if (res.ok) {
-          biblePages.splice(bibleIndex, 1);
-          if (bibleIndex >= biblePages.length) bibleIndex = Math.max(0, biblePages.length - 1);
-          renderBible();
-          showToast('Page supprimée.');
-        } else { showToast('Erreur lors de la suppression.', 'error'); }
-      } catch { showToast('Impossible de contacter le serveur.', 'error'); }
-    });
-  });
-
-  // ── Navigation ──
-  prevBtn?.addEventListener('click', () => {
-    if (bibleIndex > 0) { bibleIndex--; renderBible('prev'); }
-  });
-  nextBtn?.addEventListener('click', () => {
-    if (bibleIndex < biblePages.length - 1) { bibleIndex++; renderBible('next'); }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    const bibleSection = document.getElementById('section-bible');
-    if (!bibleSection?.classList.contains('active')) return;
-    if (modal?.classList.contains('open')) return;
-    if (e.key === 'ArrowRight' && !nextBtn?.disabled) { bibleIndex++; renderBible('next'); }
-    if (e.key === 'ArrowLeft'  && !prevBtn?.disabled) { bibleIndex--; renderBible('prev'); }
-  });
-
   window._fetchBible = fetchBible;
   window._initBibleAdminBar = function () {
     if (adminBar && currentUser?.is_admin) adminBar.style.display = '';
     else if (adminBar) adminBar.style.display = 'none';
+    updateAdminBtns();
   };
 })();
 
