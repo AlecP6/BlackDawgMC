@@ -302,37 +302,10 @@ body {
   border-radius: var(--radius);
   opacity: 0.9;
   object-fit: contain;
-  position: relative;
 }
 
 .sidebar-img-wrap {
-  position: relative;
   display: inline-block;
-  overflow: hidden;
-  border-radius: var(--radius);
-}
-
-.sidebar-img-wrap::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    110deg,
-    transparent 20%,
-    rgba(255, 255, 255, 0.55) 45%,
-    rgba(255, 255, 255, 0.75) 50%,
-    rgba(255, 255, 255, 0.55) 55%,
-    transparent 80%
-  );
-  transform: translateX(-130%);
-  animation: logoSheen 3.5s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes logoSheen {
-  0%   { transform: translateX(-130%); }
-  55%  { transform: translateX(130%); }
-  100% { transform: translateX(130%); }
 }
 
 .version {
