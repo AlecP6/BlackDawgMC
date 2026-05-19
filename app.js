@@ -242,6 +242,7 @@ function onUserLoggedIn(user) {
   document.getElementById('userRpName').textContent = user.rp_name;
   const adminNav = document.getElementById('adminNavItem');
   if (adminNav) adminNav.style.display = user.is_admin ? '' : 'none';
+  if (window._initBibleAdminBar) window._initBibleAdminBar();
   switchSection('comptabilite');
 }
 
@@ -270,6 +271,7 @@ const sectionTitles = {
   'resume-tables': 'Résumé Tables',
   'missions': 'Missions',
   'admin': 'Administration',
+  'bible': 'La Bible',
 };
 
 // Restore session on load
@@ -318,6 +320,10 @@ function switchSection(targetId) {
       fetchAdminUsers();
       fetchLogs();
       fetchTransactions();
+    }
+    if (targetId === 'bible') {
+      if (window._fetchBible) window._fetchBible();
+      if (window._initBibleAdminBar) window._initBibleAdminBar();
     }
   }
 }
@@ -1991,6 +1997,195 @@ updateDate();
       saveBtn.textContent = 'Enregistrer';
     }
   });
+})();
+
+// ===== BIBLE =====
+(function () {
+  let biblePages   = [];
+  let bibleIndex   = 0;   // index de la page affichée
+  let bibleEditId  = null; // null = création, number = édition
+
+  const bookEl      = document.getElementById('bibleBook');
+  const coverEl     = document.getElementById('bibleCover');
+  const pageWrapEl  = document.getElementById('biblePageWrap');
+  const pageEl      = document.getElementById('biblePage');
+  const pageNumEl   = document.getElementById('biblePageNum');
+  const titleDspEl  = document.getElementById('biblePageTitleDisplay');
+  const contentEl   = document.getElementById('biblePageContent');
+  const navEl       = document.getElementById('bibleNav');
+  const navInfoEl   = document.getElementById('bibleNavInfo');
+  const prevBtn     = document.getElementById('biblePrev');
+  const nextBtn     = document.getElementById('bibleNext');
+  const adminBar    = document.getElementById('bibleAdminBar');
+  const emptyHint   = document.getElementById('bibleEmptyHint');
+  const btnAdd      = document.getElementById('bibleBtnAdd');
+  const btnEdit     = document.getElementById('bibleBtnEdit');
+  const btnDel      = document.getElementById('bibleBtnDel');
+
+  // Modal
+  const modal       = document.getElementById('biblePageModal');
+  const modalTitle  = document.getElementById('biblePageModalTitle');
+  const modalClose  = document.getElementById('biblePageModalClose');
+  const modalCancel = document.getElementById('biblePageModalCancel');
+  const saveBtn     = document.getElementById('btnSaveBiblePage');
+  const titleInput  = document.getElementById('bibleEditTitle');
+  const contentTa   = document.getElementById('bibleEditContent');
+  const errorEl     = document.getElementById('biblePageError');
+
+  async function fetchBible() {
+    try {
+      const res  = await fetch(`${API}/bible`, { headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) return;
+      biblePages = data;
+      renderBible();
+    } catch { console.error('Erreur chargement Bible.'); }
+  }
+
+  function renderBible(dir = null) {
+    const isEmpty = biblePages.length === 0;
+
+    if (isEmpty) {
+      coverEl.style.display    = '';
+      pageWrapEl.style.display = 'none';
+      navEl.style.display      = 'none';
+      if (emptyHint) emptyHint.style.display = '';
+      if (btnEdit) btnEdit.style.display = 'none';
+      if (btnDel)  btnDel.style.display  = 'none';
+      return;
+    }
+
+    if (bibleIndex >= biblePages.length) bibleIndex = biblePages.length - 1;
+    if (bibleIndex < 0) bibleIndex = 0;
+
+    const page = biblePages[bibleIndex];
+    const total = biblePages.length;
+
+    coverEl.style.display    = 'none';
+    navEl.style.display      = '';
+    if (btnEdit) btnEdit.style.display = currentUser?.is_admin ? '' : 'none';
+    if (btnDel)  btnDel.style.display  = currentUser?.is_admin ? '' : 'none';
+
+    navInfoEl.textContent       = `${bibleIndex + 1} / ${total}`;
+    prevBtn.disabled            = bibleIndex === 0;
+    nextBtn.disabled            = bibleIndex === total - 1;
+    pageNumEl.textContent       = `Page ${bibleIndex + 1}`;
+    titleDspEl.textContent      = page.title;
+    contentEl.textContent       = page.content;
+
+    // Animation flip
+    if (dir && pageWrapEl.style.display !== 'none') {
+      const outClass = dir === 'next' ? 'flip-out-left' : 'flip-out-right';
+      const inClass  = dir === 'next' ? 'flip-in-right' : 'flip-in-left';
+      pageEl.classList.add(outClass);
+      pageEl.addEventListener('animationend', () => {
+        pageEl.classList.remove(outClass);
+        pageNumEl.textContent  = `Page ${bibleIndex + 1}`;
+        titleDspEl.textContent = page.title;
+        contentEl.textContent  = page.content;
+        pageEl.classList.add(inClass);
+        pageEl.addEventListener('animationend', () => {
+          pageEl.classList.remove(inClass);
+        }, { once: true });
+      }, { once: true });
+    } else {
+      pageWrapEl.style.display = '';
+    }
+  }
+
+  function openBibleModal(editPage = null) {
+    bibleEditId = editPage ? editPage.id : null;
+    modalTitle.textContent  = editPage ? 'Modifier la page' : 'Nouvelle page';
+    titleInput.value        = editPage ? editPage.title : '';
+    contentTa.value         = editPage ? editPage.content : '';
+    errorEl.style.display   = 'none';
+    errorEl.textContent     = '';
+    modal.classList.add('open');
+    setTimeout(() => titleInput.focus(), 80);
+  }
+
+  function closeBibleModal() {
+    modal.classList.remove('open');
+  }
+
+  btnAdd?.addEventListener('click', () => openBibleModal(null));
+  btnEdit?.addEventListener('click', () => { if (biblePages[bibleIndex]) openBibleModal(biblePages[bibleIndex]); });
+  modalClose?.addEventListener('click', closeBibleModal);
+  modalCancel?.addEventListener('click', closeBibleModal);
+  modal?.addEventListener('click', (e) => { if (e.target === modal) closeBibleModal(); });
+
+  saveBtn?.addEventListener('click', async () => {
+    const title   = titleInput.value.trim();
+    const content = contentTa.value;
+    if (!title) { errorEl.textContent = 'Titre requis.'; errorEl.style.display = ''; return; }
+
+    saveBtn.disabled = true; saveBtn.textContent = 'Enregistrement...';
+    errorEl.style.display = 'none';
+
+    try {
+      const url    = bibleEditId ? `${API}/bible/${bibleEditId}` : `${API}/bible`;
+      const method = bibleEditId ? 'PUT' : 'POST';
+      const res    = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify({ title, content }) });
+      const data   = await res.json();
+      if (!res.ok) { errorEl.textContent = data.error || 'Erreur.'; errorEl.style.display = ''; return; }
+
+      if (bibleEditId) {
+        const idx = biblePages.findIndex(p => p.id === bibleEditId);
+        if (idx !== -1) biblePages[idx] = data;
+      } else {
+        biblePages.push(data);
+        bibleIndex = biblePages.length - 1;
+      }
+      renderBible();
+      closeBibleModal();
+      showToast(bibleEditId ? 'Page modifiée.' : 'Page ajoutée.');
+    } catch { errorEl.textContent = 'Impossible de contacter le serveur.'; errorEl.style.display = ''; }
+    finally { saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer'; }
+  });
+
+  btnDel?.addEventListener('click', () => {
+    if (!biblePages[bibleIndex]) return;
+    const id = biblePages[bibleIndex].id;
+    confirmAction('Supprimer cette page de la Bible ?', async () => {
+      try {
+        const res = await fetch(`${API}/bible/${id}`, { method: 'DELETE', headers: authHeaders() });
+        if (res.ok) {
+          biblePages.splice(bibleIndex, 1);
+          if (bibleIndex >= biblePages.length) bibleIndex = Math.max(0, biblePages.length - 1);
+          renderBible();
+          showToast('Page supprimée.');
+        } else { showToast('Erreur lors de la suppression.', 'error'); }
+      } catch { showToast('Impossible de contacter le serveur.', 'error'); }
+    });
+  });
+
+  prevBtn?.addEventListener('click', () => {
+    if (bibleIndex > 0) { bibleIndex--; renderBible('prev'); }
+  });
+
+  nextBtn?.addEventListener('click', () => {
+    if (bibleIndex < biblePages.length - 1) { bibleIndex++; renderBible('next'); }
+  });
+
+  // Clavier : flèches gauche/droite quand la section Bible est active
+  document.addEventListener('keydown', (e) => {
+    const bibleSection = document.getElementById('section-bible');
+    if (!bibleSection?.classList.contains('active')) return;
+    if (e.key === 'ArrowRight' && !nextBtn?.disabled) { bibleIndex++; renderBible('next'); }
+    if (e.key === 'ArrowLeft'  && !prevBtn?.disabled) { bibleIndex--; renderBible('prev'); }
+  });
+
+  // Exposer fetchBible pour l'appeler depuis switchSection
+  window._fetchBible = fetchBible;
+
+  // Afficher la barre admin si admin
+  function initBibleAdminBar() {
+    if (adminBar && currentUser?.is_admin) adminBar.style.display = '';
+    else if (adminBar) adminBar.style.display = 'none';
+  }
+
+  // Hook sur onUserLoggedIn — on expose pour être appelé une fois l'user connu
+  window._initBibleAdminBar = initBibleAdminBar;
 })();
 
 // ===== ADMIN COLLAPSIBLE SECTIONS =====

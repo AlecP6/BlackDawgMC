@@ -2826,3 +2826,224 @@ body {
   margin: 0 0 12px;
 }
 
+/* ===== NAV SEPARATOR (Bible) ===== */
+.nav-separator {
+  height: 1px;
+  background: var(--border);
+  margin: 10px 16px;
+  list-style: none;
+}
+.nav-item-bible {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+.nav-item-bible.active,
+.nav-item-bible:hover {
+  color: var(--accent);
+}
+
+/* ===== BIBLE SECTION ===== */
+.bible-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 0 40px;
+}
+
+/* Le "livre" */
+.bible-book {
+  width: 100%;
+  max-width: 760px;
+  min-height: 520px;
+  background: #0a0a0a;
+  border: 1px solid var(--border-light);
+  border-radius: 4px 16px 16px 4px;
+  box-shadow:
+    -6px 0 0 #1a1a1a,
+    -10px 0 0 #111,
+    -14px 0 0 #0d0d0d,
+    0 20px 60px rgba(0,0,0,0.7),
+    inset 4px 0 12px rgba(0,0,0,0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Couverture (état vide) */
+.bible-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 520px;
+  background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 50%, #0d0d0d 100%);
+}
+.bible-cover-inner {
+  text-align: center;
+  padding: 40px;
+}
+.bible-cover-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  opacity: 0.7;
+  margin-bottom: 20px;
+}
+.bible-cover-title {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.bible-cover-subtitle {
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.bible-empty-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Page intérieure */
+.bible-page-wrap {
+  min-height: 520px;
+  perspective: 1400px;
+}
+.bible-page {
+  min-height: 520px;
+  padding: 40px 48px;
+  background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%);
+  transform-style: preserve-3d;
+  transform-origin: left center;
+}
+.bible-page-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+  margin-bottom: 28px;
+}
+.bible-page-num {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+.bible-page-title-display {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+.bible-page-content {
+  font-size: 14.5px;
+  line-height: 1.85;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Animations flip livre */
+@keyframes flipOutLeft {
+  from { transform: perspective(1400px) rotateY(0deg);   opacity: 1; }
+  to   { transform: perspective(1400px) rotateY(-90deg); opacity: 0; }
+}
+@keyframes flipInRight {
+  from { transform: perspective(1400px) rotateY(90deg);  opacity: 0; }
+  to   { transform: perspective(1400px) rotateY(0deg);   opacity: 1; }
+}
+@keyframes flipOutRight {
+  from { transform: perspective(1400px) rotateY(0deg);  opacity: 1; }
+  to   { transform: perspective(1400px) rotateY(90deg); opacity: 0; }
+}
+@keyframes flipInLeft {
+  from { transform: perspective(1400px) rotateY(-90deg); opacity: 0; }
+  to   { transform: perspective(1400px) rotateY(0deg);   opacity: 1; }
+}
+.flip-out-left  { animation: flipOutLeft  0.30s ease-in  forwards; }
+.flip-in-right  { animation: flipInRight  0.30s ease-out forwards; }
+.flip-out-right { animation: flipOutRight 0.30s ease-in  forwards; }
+.flip-in-left   { animation: flipInLeft   0.30s ease-out forwards; }
+
+/* Navigation du livre */
+.bible-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.bible-btn-prev,
+.bible-btn-next {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  font-size: 18px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  user-select: none;
+}
+.bible-btn-prev:hover:not([disabled]),
+.bible-btn-next:hover:not([disabled]) {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.bible-btn-prev[disabled],
+.bible-btn-next[disabled] { opacity: 0.3; cursor: default; }
+.bible-nav-info {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 50px;
+  text-align: center;
+  letter-spacing: 0.05em;
+}
+
+/* Barre admin Bible */
+.bible-admin-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.bible-btn-add { font-size: 13px; padding: 8px 18px; }
+.bible-btn-edit { font-size: 13px; padding: 8px 18px; }
+.bible-btn-del {
+  font-size: 13px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid #e05c5c;
+  color: #e05c5c;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.bible-btn-del:hover { background: rgba(224,92,92,0.1); }
+
+/* Textarea Bible */
+.bible-textarea {
+  font-family: inherit;
+  resize: vertical;
+  min-height: 300px;
+  line-height: 1.7;
+}
+
+@media (max-width: 600px) {
+  .bible-book { border-radius: 4px 8px 8px 4px; box-shadow: -4px 0 0 #111, 0 8px 30px rgba(0,0,0,0.6); }
+  .bible-page { padding: 24px 20px; }
+  .bible-page-title-display { font-size: 16px; }
+}
+

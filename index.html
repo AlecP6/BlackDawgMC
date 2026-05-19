@@ -115,6 +115,11 @@
  <li id="adminNavItem" style="display:none"><a href="#" class="nav-item" data-section="admin"><span class="nav-label">Admin</span>
  </a>
  </li>
+ <li class="nav-separator" aria-hidden="true"></li>
+ <li>
+ <a href="#" class="nav-item nav-item-bible" data-section="bible"><span class="nav-label">La Bible</span>
+ </a>
+ </li>
  </ul>
  </nav>
 
@@ -545,6 +550,51 @@
  </div>
  </section>
 
+ <!-- Bible -->
+ <section class="section" id="section-bible">
+ <div class="section-header"><p class="section-desc">Règlements, lore et documents officiels du Mamba Cult MC.</p></div>
+
+ <!-- Livre -->
+ <div class="bible-container">
+   <div class="bible-book" id="bibleBook">
+     <!-- Couverture quand vide -->
+     <div class="bible-cover" id="bibleCover">
+       <div class="bible-cover-inner">
+         <img src="image.png" alt="Mamba Cult MC" class="bible-cover-logo" />
+         <div class="bible-cover-title">LA BIBLE</div>
+         <div class="bible-cover-subtitle">MAMBA CULT MC</div>
+         <p class="bible-empty-hint" id="bibleEmptyHint">Aucune page pour l'instant.</p>
+       </div>
+     </div>
+
+     <!-- Page courante -->
+     <div class="bible-page-wrap" id="biblePageWrap" style="display:none">
+       <div class="bible-page" id="biblePage">
+         <div class="bible-page-header">
+           <span class="bible-page-num" id="biblePageNum">Page 1</span>
+           <span class="bible-page-title-display" id="biblePageTitleDisplay"></span>
+         </div>
+         <div class="bible-page-content" id="biblePageContent"></div>
+       </div>
+     </div>
+   </div>
+
+   <!-- Navigation -->
+   <div class="bible-nav" id="bibleNav" style="display:none">
+     <button class="bible-btn-prev" id="biblePrev" disabled title="Page précédente">←</button>
+     <span class="bible-nav-info" id="bibleNavInfo">1 / 1</span>
+     <button class="bible-btn-next" id="bibleNext" title="Page suivante">→</button>
+   </div>
+
+   <!-- Actions admin -->
+   <div class="bible-admin-bar" id="bibleAdminBar" style="display:none">
+     <button class="btn-submit bible-btn-add" id="bibleBtnAdd">+ Nouvelle page</button>
+     <button class="btn-cancel bible-btn-edit" id="bibleBtnEdit" style="display:none">Modifier cette page</button>
+     <button class="btn-delete bible-btn-del" id="bibleBtnDel" style="display:none">✕ Supprimer</button>
+   </div>
+ </div>
+ </section>
+
  </main>
  </div>
 
@@ -577,6 +627,28 @@
  </div>
  </div>
  </div>
+
+<!-- Modal édition page Bible -->
+<div class="modal-overlay" id="biblePageModal">
+<div class="modal-box modal-box-lg">
+<div class="modal-header"><h3 id="biblePageModalTitle">Nouvelle page</h3>
+<button class="modal-close" id="biblePageModalClose">✕</button>
+</div>
+<div class="modal-body">
+<div class="form-group"><label class="form-label" for="bibleEditTitle">Titre de la page</label>
+<input type="text" id="bibleEditTitle" class="form-input" placeholder="Ex : Règlement intérieur..." autocomplete="off" />
+</div>
+<div class="form-group form-group-full"><label class="form-label" for="bibleEditContent">Contenu</label>
+<textarea id="bibleEditContent" class="form-input bible-textarea" placeholder="Rédigez le contenu de cette page..." rows="16"></textarea>
+</div>
+<div class="auth-error" id="biblePageError" style="display:none"></div>
+</div>
+<div class="modal-footer">
+<button class="btn-cancel" id="biblePageModalCancel">Annuler</button>
+<button class="btn-submit" id="btnSaveBiblePage">Enregistrer</button>
+</div>
+</div>
+</div>
 
 <!-- Modal édition de profil -->
 <div class="modal-overlay" id="profileEditModal">
