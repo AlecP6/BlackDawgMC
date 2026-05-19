@@ -3041,17 +3041,22 @@ body {
   line-height: 1.7;
 }
 
-/* Image pleine page dans le livre */
+/* Image pleine page dans le livre — tient dans l'écran sans scroll */
 .bible-page-img {
   width: 100%;
   max-width: 100%;
+  max-height: calc(100vh - 280px);
   height: auto;
   display: block;
   border-radius: 4px;
   object-fit: contain;
+  object-position: top;
+}
+.bible-page:has(.bible-page-img) {
+  padding-bottom: 24px;
 }
 .bible-page:has(.bible-page-img) .bible-page-header {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 /* Toggle mode texte / image */

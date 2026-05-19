@@ -2148,20 +2148,10 @@ updateDate();
     }
     const reader = new FileReader();
     reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width  = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-        // Compression à 75% en JPEG (réduit ~60-70% la taille du fichier)
-        pendingImageData = canvas.toDataURL('image/jpeg', 0.75);
-        previewImg.src            = pendingImageData;
-        previewWrap.style.display = '';
-        dropContent.style.display = 'none';
-      };
-      img.src = e.target.result;
+      pendingImageData          = e.target.result;
+      previewImg.src            = pendingImageData;
+      previewWrap.style.display = '';
+      dropContent.style.display = 'none';
     };
     reader.readAsDataURL(file);
   }
