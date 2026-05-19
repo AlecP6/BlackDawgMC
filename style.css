@@ -44,28 +44,36 @@ html, body {
   line-height: 1.6;
 }
 
-/* Image de fond biker */
+/* Fond marbre noir CSS pur */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: url('https://images.unsplash.com/photo-1541123437800-1bb1317badc2?w=1920&q=80');
-  background-size: cover;
-  background-position: center center;
-  background-attachment: fixed;
-  opacity: 0.35;
   z-index: 0;
   pointer-events: none;
-}
-
-/* Overlay dégradé pour renforcer la lisibilité */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 40%, rgba(0,0,0,0.6) 100%);
-  z-index: 0;
-  pointer-events: none;
+  background-color: #080808;
+  background-image:
+    repeating-linear-gradient(
+      108deg,
+      transparent 0px,   transparent 38px,
+      rgba(255,255,255,0.018) 38px, rgba(255,255,255,0.018) 40px,
+      transparent 40px,  transparent 95px,
+      rgba(255,255,255,0.012) 95px, rgba(255,255,255,0.012) 96px,
+      transparent 96px,  transparent 160px,
+      rgba(255,255,255,0.022) 160px, rgba(255,255,255,0.022) 162px
+    ),
+    repeating-linear-gradient(
+      -72deg,
+      transparent 0px,   transparent 55px,
+      rgba(255,255,255,0.014) 55px, rgba(255,255,255,0.014) 57px,
+      transparent 57px,  transparent 120px,
+      rgba(255,255,255,0.009) 120px, rgba(255,255,255,0.009) 121px,
+      transparent 121px, transparent 200px,
+      rgba(255,255,255,0.018) 200px, rgba(255,255,255,0.018) 202px
+    ),
+    radial-gradient(ellipse at 25% 35%, rgba(255,255,255,0.016) 0%, transparent 55%),
+    radial-gradient(ellipse at 75% 65%, rgba(255,255,255,0.012) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 10%, rgba(255,255,255,0.008) 0%, transparent 40%);
 }
 
 /* ===== LOADING SCREEN ===== */
