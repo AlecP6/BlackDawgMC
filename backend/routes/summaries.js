@@ -20,12 +20,12 @@ function sendDiscordWebhook(summary) {
       description: summary.content.length > 4000
         ? summary.content.slice(0, 3997) + '...'
         : summary.content,
-      color:       0x4caf82,
+      color:       0x000000,
       fields: [
         { name: '📅 Date de l\'événement', value: dateFormatted,           inline: true },
         { name: '✍️ Publié par',           value: summary.created_by_name, inline: true },
       ],
-      footer:    { text: 'Coiled Cash — Résumé Tables' },
+      footer:    { text: 'Mamba Cult MC — Résumé Tables' },
       timestamp: new Date().toISOString(),
     }],
   });

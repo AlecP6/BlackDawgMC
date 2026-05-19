@@ -47,7 +47,7 @@ app.use((req, res) => {
 // Démarrage local uniquement (Vercel gère le cycle de vie en serverless)
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`✅ Coiled Cash backend démarré sur http://localhost:${PORT}`);
+    console.log(`✅ Mamba Cult MC backend démarré sur http://localhost:${PORT}`);
   });
 }
 

@@ -44,7 +44,7 @@ router.post('/', auth, async (req, res) => {
       business?.trim()  || null,
       company?.trim()   || null,
       notes?.trim()     || null,
-      color || '#4caf82',
+      color || '#ffffff',
       zone_ids || '',
       phone?.trim()     || null,
       req.user.id,
@@ -85,7 +85,7 @@ router.put('/:id', auth, async (req, res) => {
       business?.trim()  || null,
       company?.trim()   || null,
       notes?.trim()     || null,
-      color || '#4caf82',
+      color || '#ffffff',
       zone_ids || '',
       phone?.trim()     || null,
       req.user.id,
@@ -128,3 +128,4 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 module.exports = router;
+

@@ -1,7 +1,7 @@
 {
-  "name": "coiled-cash-backend",
+  "name": "mamba-cult-mc-backend",
   "version": "1.0.0",
-  "description": "Backend API pour Coiled Cash RP",
+  "description": "Backend API pour Mamba Cult MC RP",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

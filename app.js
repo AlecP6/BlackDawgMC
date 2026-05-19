@@ -958,7 +958,7 @@ function openGroupModal(group) {
   document.getElementById('groupCompany').value   = group?.company   ?? '';
   document.getElementById('groupNotes').value     = group?.notes     ?? '';
 
-  const color = group?.color || '#4caf82';
+  const color = group?.color || '#ffffff';
   document.getElementById('groupColor').value           = color;
   document.getElementById('groupColorLabel').textContent = color;
 
@@ -1883,7 +1883,7 @@ function renderBalanceChart(txData) {
     type: 'line',
     data: {
       labels,
-      datasets: [{ label: 'Solde', data, borderColor: '#4caf82', backgroundColor: 'rgba(76,175,130,0.1)',
+      datasets: [{ label: 'Solde', data, borderColor: '#ffffff', backgroundColor: 'rgba(255,255,255,0.07)',
         tension: 0.3, fill: true, pointRadius: 3 }],
     },
     options: { responsive: true, plugins: { legend: { display: false } },
@@ -2285,7 +2285,7 @@ function initMap() {
     const pt = [Math.round(e.latlng.lat), Math.round(e.latlng.lng)];
     editorPoints.push(pt);
     const marker = L.circleMarker([pt[0], pt[1]], {
-      radius: 5, color: '#fff', fillColor: '#4caf82', fillOpacity: 1, weight: 2,
+      radius: 5, color: '#fff', fillColor: '#ffffff', fillOpacity: 1, weight: 2,
     }).addTo(gtaMap);
     editorMarkers.push(marker);
     updateEditorPreview();
@@ -2348,7 +2348,7 @@ function updateEditorPreview() {
   if (editorPreview) { gtaMap.removeLayer(editorPreview); editorPreview = null; }
   if (editorPoints.length < 2) return;
   editorPreview = L.polygon(editorPoints, {
-    color: '#4caf82', weight: 2, dashArray: '6,4', fillColor: '#4caf82', fillOpacity: 0.15,
+    color: '#ffffff', weight: 2, dashArray: '6,4', fillColor: '#ffffff', fillOpacity: 0.10,
   }).addTo(gtaMap);
 }
 
