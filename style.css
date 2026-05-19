@@ -748,13 +748,13 @@ body {
 }
 
 .stat-balance  { border-top: 3px solid var(--accent); box-shadow: 0 0 16px rgba(255,255,255,0.07); }
-.stat-balance .stat-value { color: var(--accent); text-shadow: 0 0 10px rgba(255,255,255,0.30); }
-.stat-income   { border-top: 3px solid #7dd4aa; }
-.stat-income .stat-value  { color: #7dd4aa; }
-.stat-expense  { border-top: 3px solid #e05c5c; }
-.stat-expense .stat-value { color: #e05c5c; }
-.stat-count    { border-top: 3px solid #8a8090; }
-.stat-count .stat-value   { color: #8a8090; }
+.stat-balance .stat-value { color: var(--accent); text-shadow: 0 0 10px rgba(255,255,255,0.15); }
+.stat-income   { border-top: 3px solid #ffffff; }
+.stat-income .stat-value  { color: #ffffff; }
+.stat-expense  { border-top: 3px solid #aaaaaa; }
+.stat-expense .stat-value { color: #aaaaaa; }
+.stat-count    { border-top: 3px solid #666666; }
+.stat-count .stat-value   { color: #666666; }
 
 /* ===== COMPTABILITÉ — FORMULAIRE ===== */
 .form-card {
