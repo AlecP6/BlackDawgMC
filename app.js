@@ -2377,9 +2377,6 @@ updateDate();
     finally { saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer'; }
   });
 
-  // ── Supprimer ──
-  btnDel?.addEventListener('click', () => {
-    if (!biblePages[bibleIndex]) return;
   window._fetchBible = fetchBible;
   window._initBibleAdminBar = function () {
     if (adminBar && currentUser?.is_admin) adminBar.style.display = '';
