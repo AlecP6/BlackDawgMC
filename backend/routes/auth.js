@@ -93,6 +93,55 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// PATCH /api/auth/profile
+router.patch('/profile', require('../middleware/authMiddleware'), async (req, res) => {
+  const { rp_name, current_password, new_password } = req.body;
+  if (!rp_name && !new_password)
+    return res.status(400).json({ error: 'Rien à mettre à jour.' });
+
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE id = $1', [req.user.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Utilisateur introuvable.' });
+    const user = result.rows[0];
+
+    const updates = [];
+    const params  = [];
+    let idx = 1;
+
+    if (rp_name && rp_name.trim()) {
+      updates.push(`rp_name = $${idx++}`);
+      params.push(rp_name.trim());
+    }
+
+    if (new_password) {
+      if (!current_password) return res.status(400).json({ error: 'Mot de passe actuel requis.' });
+      const valid = await bcrypt.compare(current_password, user.password_hash);
+      if (!valid) return res.status(401).json({ error: 'Mot de passe actuel incorrect.' });
+      if (new_password.length < 4) return res.status(400).json({ error: 'Nouveau mot de passe trop court (min. 4 caractères).' });
+      const hashed = await bcrypt.hash(new_password, 10);
+      updates.push(`password_hash = $${idx++}`);
+      params.push(hashed);
+    }
+
+    params.push(req.user.id);
+    const updated = await pool.query(
+      `UPDATE users SET ${updates.join(', ')} WHERE id = $${idx} RETURNING id, username, rp_name, is_admin`,
+      params
+    );
+
+    const u = updated.rows[0];
+    const token = jwt.sign(
+      { id: u.id, username: u.username, rp_name: u.rp_name, is_admin: u.is_admin },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+    res.json({ token, user: u });
+  } catch (err) {
+    console.error('Profile update error:', err);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
 // GET /api/auth/me
 router.get('/me', require('../middleware/authMiddleware'), async (req, res) => {
   try {

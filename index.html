@@ -107,10 +107,10 @@
  <a href="#" class="nav-item" data-section="resume-tables"><span class="nav-label">Résumé Tables</span>
  </a>
  </li>
- <li>
- <a href="#" class="nav-item" data-section="missions"><span class="nav-label">Missions</span>
- </a>
- </li>
+<li>
+<a href="#" class="nav-item" data-section="missions"><span class="nav-label">Missions</span><span class="nav-badge" id="badgeMissions" style="display:none">0</span>
+</a>
+</li>
  <!-- Lien Admin masqué par défaut ; affiché uniquement pour les utilisateurs is_admin=true (géré dans onUserLoggedIn). -->
  <li id="adminNavItem" style="display:none"><a href="#" class="nav-item" data-section="admin"><span class="nav-label">Admin</span>
  </a>
@@ -127,12 +127,12 @@
  <div class="main-wrapper"><!-- Topbar -->
  <header class="topbar"><button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"></button>
  <div class="topbar-title" id="topbarTitle">Comptabilité</div>
- <div class="topbar-right"><span class="date-display" id="dateDisplay"></span>
- <div class="user-chip" id="userChip"><span class="user-chip-avatar" id="userAvatar"></span>
- <span class="user-chip-name" id="userRpName"></span>
- </div>
- <button class="btn-logout" id="btnLogout" title="Se déconnecter">⏻</button>
- </div>
+<div class="topbar-right"><span class="topbar-balance" id="topbarBalance" title="Solde total">$0</span><span class="date-display" id="dateDisplay"></span>
+<div class="user-chip" id="userChip" title="Modifier mon profil" style="cursor:pointer"><span class="user-chip-avatar" id="userAvatar"></span>
+<span class="user-chip-name" id="userRpName"></span>
+</div>
+<button class="btn-logout" id="btnLogout" title="Se déconnecter">⏻</button>
+</div>
  </header>
 
  <!-- Content area -->
@@ -195,28 +195,29 @@
  </div>
  </div>
 
- <div class="transactions-table-wrap"><table class="transactions-table"><thead>
- <tr>
- <th>Type</th>
- <th>Membre</th>
- <th>Motif</th>
- <th>Montant</th>
- <th>Date</th>
- <th></th>
- </tr>
- </thead>
+<div class="transactions-table-wrap"><table class="transactions-table"><thead>
+<tr>
+<th class="sortable-th" data-sort="type">Type <span class="sort-arrow">↕</span></th>
+<th class="sortable-th" data-sort="member">Membre <span class="sort-arrow">↕</span></th>
+<th class="sortable-th" data-sort="motif">Motif <span class="sort-arrow">↕</span></th>
+<th class="sortable-th" data-sort="amount">Montant <span class="sort-arrow">↕</span></th>
+<th class="sortable-th active-sort" data-sort="date">Date <span class="sort-arrow">↓</span></th>
+<th></th>
+</tr>
+</thead>
  <tbody id="transactionsList"><tr class="empty-row" id="emptyTransactions"><td colspan="6"><div class="empty-state"><p>Aucune transaction pour l'instant.</p>
  </div>
  </td>
  </tr>
- </tbody>
- </table>
- </div>
- </div>
+</tbody>
+</table>
+</div>
+<div class="pagination-bar" id="txPagination"></div>
+</div>
 
- </section>
+</section>
 
- <!-- Armement -->
+<!-- Armement -->
  <section class="section" id="section-armement"><div class="section-header"> <p class="section-desc">Inventaire et gestion des armes du groupe.</p>
  </div>
 
@@ -259,12 +260,13 @@
  <input type="text" id="weaponSearch" class="form-input weapon-search" placeholder="Rechercher une arme..." />
  </div>
 
- <!-- Grille d'armes -->
- <div class="weapons-grid" id="weaponsGrid"><div class="weapons-empty" id="weaponsEmpty"><p>Aucune arme dans l'inventaire.</p>
- </div>
- </div>
+<!-- Grille d'armes -->
+<div class="weapons-grid" id="weaponsGrid"><div class="weapons-empty" id="weaponsEmpty"><p>Aucune arme dans l'inventaire.</p>
+</div>
+</div>
+<div class="pagination-bar" id="wpPagination"></div>
 
- <!-- Modal attribution -->
+<!-- Modal attribution -->
  <div class="modal-overlay" id="assignModal"><div class="modal-box"><div class="modal-header"><h3 id="assignModalTitle">Attribuer l'arme</h3>
  <button class="modal-close" id="assignModalClose">✕</button>
  </div>
@@ -576,8 +578,35 @@
  </div>
  </div>
 
- <!-- Leaflet pour la carte interactive des territoires (CRS.Simple, sans projection géo). -->
- <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Modal édition de profil -->
+<div class="modal-overlay" id="profileEditModal">
+<div class="modal-box">
+<div class="modal-header"><h3>Mon profil</h3>
+<button class="modal-close" id="profileEditClose">✕</button>
+</div>
+<div class="modal-body">
+<div class="form-group"><label class="form-label" for="profileEditRpName">Nom RP</label>
+<input type="text" id="profileEditRpName" class="form-input" autocomplete="off" />
+</div>
+<hr class="modal-divider" />
+<p class="form-hint">Laisser vide si vous ne souhaitez pas changer de mot de passe.</p>
+<div class="form-group"><label class="form-label" for="profileEditCurrentPwd">Mot de passe actuel</label>
+<input type="password" id="profileEditCurrentPwd" class="form-input" placeholder="Requis pour changer le mot de passe" />
+</div>
+<div class="form-group"><label class="form-label" for="profileEditNewPwd">Nouveau mot de passe</label>
+<input type="password" id="profileEditNewPwd" class="form-input" placeholder="Minimum 4 caractères" />
+</div>
+<div class="auth-error" id="profileEditError" style="display:none"></div>
+</div>
+<div class="modal-footer">
+<button class="btn-cancel" id="profileEditCancel">Annuler</button>
+<button class="btn-submit" id="btnSaveProfile">Enregistrer</button>
+</div>
+</div>
+</div>
+
+<!-- Leaflet pour la carte interactive des territoires (CRS.Simple, sans projection géo). -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
  <!-- Chart.js pour le graphique d'évolution du solde dans la section Comptabilité. -->
  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
  <!-- Logique applicative principale — doit être chargé après Leaflet et Chart.js. -->

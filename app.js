@@ -354,9 +354,11 @@ menuToggle?.addEventListener('click', () => {
 sidebarOverlay?.addEventListener('click', closeSidebar);
 
 // ===== COMPTABILITÉ =====
-// Cache local des transactions et filtre courant ('all' | 'entree' | 'sortie').
 let transactions = [];
 let activeFilter = 'all';
+let txSort = { col: 'date', dir: 'desc' };
+let txPage = 1;
+const TX_PER_PAGE = 10;
 
 // Construit les en-têtes HTTP communs pour toutes les requêtes authentifiées :
 // Content-Type JSON + JWT Bearer token issu de la session en cours.
@@ -405,30 +407,76 @@ function updateStats() {
   animateCounter(document.getElementById('statExpense'), total_out, formatAmount);
   animateCounter(document.getElementById('statCount'),   transactions.length);
 
-  // Feedback visuel : rouge si le solde est dans le négatif, vert accent sinon.
   document.getElementById('statBalance').style.color = balance < 0 ? '#e05c5c' : 'var(--accent)';
+
+  // Topbar balance
+  const topbarEl = document.getElementById('topbarBalance');
+  if (topbarEl) {
+    topbarEl.textContent = formatAmount(balance);
+    topbarEl.style.color = balance < 0 ? '#e05c5c' : 'var(--accent)';
+  }
 }
 
-// Reconstruit le tableau des transactions : supprime les anciennes lignes `.data-row`
-// (en conservant la ligne "vide") puis insère les nouvelles selon le filtre actif.
+function renderPagination(containerId, currentPage, totalPages, onPageChange) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (totalPages <= 1) { container.innerHTML = ''; return; }
+  let html = `<button class="page-btn" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>←</button>`;
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 1) {
+      html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+    } else if (Math.abs(i - currentPage) === 2) {
+      html += `<span class="page-dots">…</span>`;
+    }
+  }
+  html += `<button class="page-btn" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>→</button>`;
+  container.innerHTML = html;
+  container.querySelectorAll('.page-btn:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', () => onPageChange(Number(btn.dataset.page)));
+  });
+}
+
 function renderTransactions() {
   const tbody    = document.getElementById('transactionsList');
   const emptyRow = document.getElementById('emptyTransactions');
 
-  const filtered = activeFilter === 'all'
+  let filtered = activeFilter === 'all'
     ? transactions
     : transactions.filter(t => t.type === activeFilter);
 
-  // Supprime uniquement les lignes de données, pas la ligne d'état vide.
+  // Tri
+  filtered = [...filtered].sort((a, b) => {
+    let va, vb;
+    switch (txSort.col) {
+      case 'type':   va = a.type;   vb = b.type;   break;
+      case 'member': va = a.member; vb = b.member; break;
+      case 'motif':  va = a.motif;  vb = b.motif;  break;
+      case 'amount': va = Number(a.amount); vb = Number(b.amount); break;
+      default:       va = new Date(a.created_at); vb = new Date(b.created_at); break;
+    }
+    if (va < vb) return txSort.dir === 'asc' ? -1 : 1;
+    if (va > vb) return txSort.dir === 'asc' ? 1  : -1;
+    return 0;
+  });
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / TX_PER_PAGE));
+  if (txPage > totalPages) txPage = totalPages;
+  const start     = (txPage - 1) * TX_PER_PAGE;
+  const paginated = filtered.slice(start, start + TX_PER_PAGE);
+
   Array.from(tbody.querySelectorAll('tr.data-row')).forEach(r => r.remove());
 
   if (filtered.length === 0) {
     emptyRow.style.display = '';
+    renderPagination('txPagination', 1, 1, () => {});
     return;
   }
   emptyRow.style.display = 'none';
 
-  filtered.forEach(t => {
+  renderPagination('txPagination', txPage, totalPages, (p) => { txPage = p; renderTransactions(); });
+
+  paginated.forEach(t => {
     const tr = document.createElement('tr');
     tr.className  = 'data-row';
     tr.dataset.id = t.id;
@@ -557,16 +605,39 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     activeFilter = btn.dataset.filter;
+    txPage = 1;
+    renderTransactions();
+  });
+});
+
+// Sort headers
+document.querySelectorAll('.sortable-th').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.sort;
+    if (txSort.col === col) {
+      txSort.dir = txSort.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      txSort.col = col;
+      txSort.dir = col === 'date' ? 'desc' : 'asc';
+    }
+    txPage = 1;
+    document.querySelectorAll('.sortable-th').forEach(h => {
+      h.classList.remove('active-sort');
+      h.querySelector('.sort-arrow').textContent = '↕';
+    });
+    th.classList.add('active-sort');
+    th.querySelector('.sort-arrow').textContent = txSort.dir === 'asc' ? '↑' : '↓';
     renderTransactions();
   });
 });
 
 // ===== ARMEMENT =====
-// Caches locaux des armes et des membres, filtres actifs et id de l'arme en attente d'attribution.
 let weapons      = [];
 let members      = [];
-let weaponFilter = 'all';   // 'all' | 'free' | 'assigned'
+let weaponFilter = 'all';
 let weaponSearch = '';
+let wpPage = 1;
+const WP_PER_PAGE = 12;
 let assignTarget = null;    // id de l'arme dont la modale d'attribution est ouverte
 
 const CATEGORY_ICONS = {
@@ -625,16 +696,22 @@ function renderWeapons() {
   const empty = document.getElementById('weaponsEmpty');
   const list  = getFilteredWeapons();
 
-  // Remove old cards
   Array.from(grid.querySelectorAll('.weapon-card')).forEach(c => c.remove());
 
   if (list.length === 0) {
     empty.style.display = '';
+    renderPagination('wpPagination', 1, 1, () => {});
     return;
   }
   empty.style.display = 'none';
 
-  list.forEach(w => {
+  const totalPages = Math.max(1, Math.ceil(list.length / WP_PER_PAGE));
+  if (wpPage > totalPages) wpPage = totalPages;
+  const start    = (wpPage - 1) * WP_PER_PAGE;
+  const paginated = list.slice(start, start + WP_PER_PAGE);
+  renderPagination('wpPagination', wpPage, totalPages, (p) => { wpPage = p; renderWeapons(); });
+
+  paginated.forEach(w => {
     const card = document.createElement('div');
     card.className  = `weapon-card ${w.assigned_to ? 'is-assigned' : 'is-free'}`;
     card.dataset.id = w.id;
@@ -791,6 +868,7 @@ document.querySelectorAll('[data-wfilter]').forEach(btn => {
     document.querySelectorAll('[data-wfilter]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     weaponFilter = btn.dataset.wfilter;
+    wpPage = 1;
     renderWeapons();
   });
 });
@@ -798,6 +876,7 @@ document.querySelectorAll('[data-wfilter]').forEach(btn => {
 // Search
 document.getElementById('weaponSearch')?.addEventListener('input', (e) => {
   weaponSearch = e.target.value.trim();
+  wpPage = 1;
   renderWeapons();
 });
 
@@ -1557,6 +1636,14 @@ let missionFilter = 'all';   // 'all' | 'en_cours' | 'termine' | 'echoue'
 const MISSION_STATUS_LABELS = { en_cours: ' En cours', termine: ' Terminée', echoue: ' Échouée' };
 const MISSION_PRIORITY_LABELS = { basse: ' Basse', normale: ' Normale', haute: ' Haute' };
 
+function updateMissionBadge() {
+  const badge = document.getElementById('badgeMissions');
+  if (!badge) return;
+  const count = missions.filter(m => m.status === 'en_cours').length;
+  if (count > 0) { badge.textContent = count; badge.style.display = ''; }
+  else { badge.style.display = 'none'; }
+}
+
 async function fetchMissions() {
   try {
     const res  = await fetch(`${API}/missions`, { headers: authHeaders() });
@@ -1564,6 +1651,7 @@ async function fetchMissions() {
     if (!res.ok) return;
     missions = data;
     renderMissions();
+    updateMissionBadge();
   } catch { console.error('Erreur chargement missions.'); }
 }
 
@@ -1691,7 +1779,7 @@ document.getElementById('missionsGrid')?.addEventListener('click', async (e) => 
     confirmAction('Supprimer cette mission ?', async () => {
       try {
         const res = await fetch(`${API}/missions/${id}`, { method:'DELETE', headers: authHeaders() });
-        if (res.ok) { missions = missions.filter(m => m.id !== id); renderMissions(); showToast('Mission supprimée.'); }
+        if (res.ok) { missions = missions.filter(m => m.id !== id); renderMissions(); updateMissionBadge(); showToast('Mission supprimée.'); }
         else showToast('Erreur lors de la suppression.', 'error');
       } catch { showToast('Impossible de contacter le serveur.', 'error'); }
     });
@@ -1708,7 +1796,7 @@ document.getElementById('missionsGrid')?.addEventListener('change', async (e) =>
       method:'PATCH', headers: authHeaders(), body: JSON.stringify({ status: sel.value }),
     });
     const data = await res.json();
-    if (res.ok) { const idx = missions.findIndex(m => m.id === id); if (idx !== -1) missions[idx] = data; renderMissions(); }
+    if (res.ok) { const idx = missions.findIndex(m => m.id === id); if (idx !== -1) missions[idx] = data; renderMissions(); updateMissionBadge(); }
   } catch {}
 });
 
@@ -1736,6 +1824,7 @@ document.getElementById('btnSaveMission')?.addEventListener('click', async () =>
     if (isEdit) { const idx = missions.findIndex(m => m.id === Number(id)); if (idx !== -1) missions[idx] = data; }
     else missions.unshift(data);
     renderMissions();
+    updateMissionBadge();
     closeModal('missionModal');
     showToast(isEdit ? 'Mission modifiée.' : 'Mission créée.');
   } catch { errorEl.textContent = 'Impossible de contacter le serveur.'; }
@@ -1816,6 +1905,93 @@ function updateDate() {
 }
 
 updateDate();
+
+// ===== PROFIL ÉDITABLE =====
+(function () {
+  const overlay    = document.getElementById('profileEditModal');
+  const closeBtn   = document.getElementById('profileEditClose');
+  const cancelBtn  = document.getElementById('profileEditCancel');
+  const saveBtn    = document.getElementById('btnSaveProfile');
+  const rpNameEl   = document.getElementById('profileEditRpName');
+  const curPwdEl   = document.getElementById('profileEditCurrentPwd');
+  const newPwdEl   = document.getElementById('profileEditNewPwd');
+  const errorEl    = document.getElementById('profileEditError');
+  const userChip   = document.getElementById('userChip');
+
+  function openProfileModal() {
+    if (!currentUser) return;
+    rpNameEl.value  = currentUser.rp_name || '';
+    curPwdEl.value  = '';
+    newPwdEl.value  = '';
+    errorEl.style.display = 'none';
+    errorEl.textContent   = '';
+    overlay.classList.add('open');
+  }
+
+  function closeProfileModal() {
+    overlay.classList.remove('open');
+  }
+
+  userChip?.addEventListener('click', openProfileModal);
+  closeBtn?.addEventListener('click',  closeProfileModal);
+  cancelBtn?.addEventListener('click', closeProfileModal);
+  overlay?.addEventListener('click', (e) => { if (e.target === overlay) closeProfileModal(); });
+
+  saveBtn?.addEventListener('click', async () => {
+    const rp_name        = rpNameEl.value.trim();
+    const current_password = curPwdEl.value;
+    const new_password   = newPwdEl.value;
+
+    if (!rp_name && !new_password) {
+      errorEl.textContent = 'Aucune modification détectée.';
+      errorEl.style.display = '';
+      return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Enregistrement...';
+    errorEl.style.display = 'none';
+
+    try {
+      const body = {};
+      if (rp_name) body.rp_name = rp_name;
+      if (new_password) { body.current_password = current_password; body.new_password = new_password; }
+
+      const res  = await fetch(`${API}/auth/profile`, {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorEl.textContent = data.error || 'Erreur.';
+        errorEl.style.display = '';
+        return;
+      }
+
+      // Mise à jour de la session
+      authToken   = data.token;
+      currentUser = data.user;
+      localStorage.setItem('authToken', authToken);
+
+      // Mise à jour de l'affichage
+      const rpNameDisplay = document.getElementById('userRpName');
+      const avatarEl      = document.getElementById('userAvatar');
+      if (rpNameDisplay) rpNameDisplay.textContent = data.user.rp_name;
+      if (avatarEl) avatarEl.textContent = data.user.rp_name.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
+
+      closeProfileModal();
+      showToast('Profil mis à jour.');
+    } catch {
+      errorEl.textContent = 'Impossible de contacter le serveur.';
+      errorEl.style.display = '';
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Enregistrer';
+    }
+  });
+})();
 
 // ===== ADMIN COLLAPSIBLE SECTIONS =====
 // Rend les en-têtes des cartes admin cliquables pour réduire/agrandir leur contenu.
