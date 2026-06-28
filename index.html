@@ -39,7 +39,11 @@
  <div class="auth-panel active" id="panelLogin"><h2 class="auth-title">Connexion</h2>
  <p class="auth-sub">Accès réservé aux membres du groupe.</p>
 
- <div class="auth-form"><div class="auth-field"><label class="auth-label" for="loginId">Identifiant</label>
+ <div class="auth-form">
+ <div class="auth-field"><label class="auth-label" for="loginGroupCode">Code de groupe</label>
+ <input type="text" id="loginGroupCode" class="auth-input auth-input-code" placeholder="ex: mamba-cult" autocomplete="off" spellcheck="false" />
+ </div>
+ <div class="auth-field"><label class="auth-label" for="loginId">Identifiant</label>
  <input type="text" id="loginId" class="auth-input" placeholder="Votre identifiant" autocomplete="off" />
  </div>
  <div class="auth-field"><label class="auth-label" for="loginPwd">Mot de passe</label>
@@ -56,7 +60,11 @@
  <div class="auth-panel" id="panelRegister"><h2 class="auth-title">Créer un compte</h2>
  <p class="auth-sub">Renseignez vos informations de membre.</p>
 
- <div class="auth-form"><div class="auth-field"><label class="auth-label" for="regId">Identifiant</label>
+ <div class="auth-form">
+ <div class="auth-field"><label class="auth-label" for="regGroupCode">Code de groupe</label>
+ <input type="text" id="regGroupCode" class="auth-input auth-input-code" placeholder="ex: mamba-cult" autocomplete="off" spellcheck="false" />
+ </div>
+ <div class="auth-field"><label class="auth-label" for="regId">Identifiant</label>
  <input type="text" id="regId" class="auth-input" placeholder="Choisir un identifiant" autocomplete="off" />
  </div>
  <div class="auth-field"><label class="auth-label" for="regRpName">Nom RP</label>
@@ -113,6 +121,10 @@
 </li>
  <!-- Lien Admin masqué par défaut ; affiché uniquement pour les utilisateurs is_admin=true (géré dans onUserLoggedIn). -->
  <li id="adminNavItem" style="display:none"><a href="#" class="nav-item" data-section="admin"><span class="nav-label">Admin</span>
+ </a>
+ </li>
+ <!-- Lien Gestion (super-admin uniquement) -->
+ <li id="gestionNavItem" style="display:none"><a href="#" class="nav-item nav-item-gestion" data-section="gestion"><span class="nav-label">Gestion</span>
  </a>
  </li>
  <li class="nav-separator" aria-hidden="true"></li>
@@ -493,6 +505,74 @@
  </div>
  <div class="modal-footer"><button class="btn-cancel" id="resetPwdCancel">Annuler</button>
  <button class="btn-submit" id="btnConfirmResetPwd">Réinitialiser</button>
+ </div>
+ </div>
+ </div>
+
+ </section>
+
+ <!-- Gestion (super-admin uniquement) -->
+ <section class="section" id="section-gestion">
+ <div class="section-header"><p class="section-desc">Gestion des groupes MC sur la plateforme.</p></div>
+
+ <div class="gestion-toolbar">
+ <button class="btn-submit" id="btnCreateTenant">+ Nouveau groupe</button>
+ </div>
+
+ <div class="gestion-grid" id="gestionGrid">
+ <p class="admin-empty" id="gestionEmpty">Aucun groupe trouvé.</p>
+ </div>
+
+ <!-- Modal création / édition tenant -->
+ <div class="modal-overlay" id="tenantModal">
+ <div class="modal-box modal-box-lg">
+ <div class="modal-header">
+ <h3 id="tenantModalTitle">Nouveau groupe</h3>
+ <button class="modal-close" id="tenantModalClose">✕</button>
+ </div>
+ <div class="modal-body">
+ <input type="hidden" id="tenantEditId" />
+ <div class="form-group"><label class="form-label" for="tenantName">Nom du groupe</label>
+ <input type="text" id="tenantName" class="form-input" placeholder="Ex: Ghost Riders MC" autocomplete="off" />
+ </div>
+ <div class="form-group"><label class="form-label" for="tenantSlug">Code de groupe <span class="auth-label-required">(utilisé à la connexion)</span></label>
+ <input type="text" id="tenantSlug" class="form-input" placeholder="Ex: ghost-riders" autocomplete="off" />
+ <small class="form-hint">Lettres minuscules, chiffres et tirets uniquement. Immuable après création.</small>
+ </div>
+ <div class="form-group"><label class="form-label" for="tenantColor">Couleur principale</label>
+ <div style="display:flex;align-items:center;gap:10px">
+ <input type="color" id="tenantColor" class="tenant-color-picker" value="#ffffff" />
+ <span id="tenantColorHex" style="font-family:monospace;font-size:0.9rem">#ffffff</span>
+ </div>
+ </div>
+ <div class="form-group"><label class="form-label">Logo du groupe</label>
+ <div class="bible-drop-zone" id="tenantLogoZone">
+ <input type="file" id="tenantLogoInput" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" />
+ <div class="bible-drop-content" id="tenantLogoContent">
+ <div class="bible-drop-icon">+</div>
+ <p>Glissez le logo ici ou <span class="bible-drop-link">cliquez pour choisir</span></p>
+ <p class="bible-drop-hint">PNG, JPG, WEBP, SVG</p>
+ </div>
+ <div class="bible-image-preview" id="tenantLogoPreview" style="display:none">
+ <img id="tenantLogoPreviewImg" src="" alt="Logo" />
+ <button class="bible-preview-remove" id="tenantRemoveLogo" title="Supprimer le logo">✕</button>
+ </div>
+ </div>
+ </div>
+ <div class="form-group" id="tenantCodeGroup" style="display:none">
+ <label class="form-label">Code d'inscription du jour</label>
+ <div class="admin-invite-code-wrap">
+ <span class="admin-invite-code" id="tenantInviteCode">——————</span>
+ <button class="btn-copy-code" id="btnCopyTenantCode" title="Copier le code">⧉</button>
+ </div>
+ <p class="admin-invite-expire">Renouvelé automatiquement chaque jour à minuit (UTC).</p>
+ </div>
+ <div class="auth-error" id="tenantError" style="display:none"></div>
+ </div>
+ <div class="modal-footer">
+ <button class="btn-cancel" id="tenantModalCancel">Annuler</button>
+ <button class="btn-danger" id="btnDeleteTenant" style="display:none">Supprimer ce groupe</button>
+ <button class="btn-submit" id="btnSaveTenant">Enregistrer</button>
  </div>
  </div>
  </div>

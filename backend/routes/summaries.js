@@ -59,8 +59,9 @@ router.get('/', auth, async (req, res) => {
       SELECT s.*, u.rp_name AS created_by_name
       FROM summaries s
       LEFT JOIN users u ON s.created_by = u.id
+      WHERE s.tenant_id = $1
       ORDER BY s.event_date DESC, s.created_at DESC
-    `);
+    `, [req.user.tenant_id]);
     res.json(result.rows);
   } catch (err) {
     console.error('Get summaries error:', err);
@@ -78,17 +79,17 @@ router.post('/', auth, async (req, res) => {
 
   try {
     const result = await pool.query(`
-      INSERT INTO summaries (title, content, event_date, created_by)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO summaries (title, content, event_date, created_by, tenant_id)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
-    `, [title.trim(), content.trim(), event_date, req.user.id]);
+    `, [title.trim(), content.trim(), event_date, req.user.id, req.user.tenant_id]);
 
     const row = result.rows[0];
     row.created_by_name = req.user.rp_name;
     res.status(201).json(row);
 
     sendDiscordWebhook(row);
-    addLog(pool, { action: 'publié', entity_type: 'Résumé', entity_name: title.trim(), user_id: req.user.id, user_rp_name: req.user.rp_name });
+    addLog(pool, { action: 'publié', entity_type: 'Résumé', entity_name: title.trim(), user_id: req.user.id, user_rp_name: req.user.rp_name, tenant_id: req.user.tenant_id });
   } catch (err) {
     console.error('Add summary error:', err);
     res.status(500).json({ error: 'Erreur serveur.' });
@@ -108,10 +109,10 @@ router.put('/:id', auth, async (req, res) => {
   try {
     const result = await pool.query(`
       UPDATE summaries SET title=$1, content=$2, event_date=$3, updated_at=NOW()
-      WHERE id=$4 RETURNING *
-    `, [title.trim(), content.trim(), event_date, id]);
+      WHERE id=$4 AND tenant_id=$5 RETURNING *
+    `, [title.trim(), content.trim(), event_date, id, req.user.tenant_id]);
 
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Résumé introuvable.' });
+    if (!result.rows.length) return res.status(404).json({ error: 'Résumé introuvable.' });
 
     const full = await pool.query(`
       SELECT s.*, u.rp_name AS created_by_name
@@ -120,7 +121,7 @@ router.put('/:id', auth, async (req, res) => {
     `, [id]);
     res.json(full.rows[0]);
 
-    addLog(pool, { action: 'modifié', entity_type: 'Résumé', entity_name: title.trim(), user_id: req.user.id, user_rp_name: req.user.rp_name });
+    addLog(pool, { action: 'modifié', entity_type: 'Résumé', entity_name: title.trim(), user_id: req.user.id, user_rp_name: req.user.rp_name, tenant_id: req.user.tenant_id });
   } catch (err) {
     console.error('Update summary error:', err);
     res.status(500).json({ error: 'Erreur serveur.' });
@@ -133,11 +134,11 @@ router.delete('/:id', auth, async (req, res) => {
   if (isNaN(id)) return res.status(400).json({ error: 'ID invalide.' });
 
   try {
-    const result = await pool.query('DELETE FROM summaries WHERE id=$1 RETURNING title', [id]);
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Résumé introuvable.' });
+    const result = await pool.query('DELETE FROM summaries WHERE id=$1 AND tenant_id=$2 RETURNING title', [id, req.user.tenant_id]);
+    if (!result.rows.length) return res.status(404).json({ error: 'Résumé introuvable.' });
     res.json({ success: true, id });
 
-    addLog(pool, { action: 'supprimé', entity_type: 'Résumé', entity_name: result.rows[0].title, user_id: req.user.id, user_rp_name: req.user.rp_name });
+    addLog(pool, { action: 'supprimé', entity_type: 'Résumé', entity_name: result.rows[0].title, user_id: req.user.id, user_rp_name: req.user.rp_name, tenant_id: req.user.tenant_id });
   } catch (err) {
     console.error('Delete summary error:', err);
     res.status(500).json({ error: 'Erreur serveur.' });

@@ -16,8 +16,9 @@ router.get('/', auth, async (req, res) => {
       FROM weapons w
       LEFT JOIN users u ON w.assigned_to = u.id
       LEFT JOIN users a ON w.added_by    = a.id
+      WHERE w.tenant_id = $1
       ORDER BY w.created_at DESC
-    `);
+    `, [req.user.tenant_id]);
     res.json(result.rows);
   } catch (err) {
     console.error('Get weapons error:', err);
@@ -34,17 +35,17 @@ router.post('/', auth, async (req, res) => {
 
   try {
     const result = await pool.query(`
-      INSERT INTO weapons (name, category, notes, added_by)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO weapons (name, category, notes, added_by, tenant_id)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
-    `, [name.trim(), category.trim(), notes?.trim() || null, req.user.id]);
+    `, [name.trim(), category.trim(), notes?.trim() || null, req.user.id, req.user.tenant_id]);
 
     const weapon = result.rows[0];
     weapon.added_by_name    = req.user.rp_name;
     weapon.assigned_to_name = null;
     res.status(201).json(weapon);
 
-    addLog(pool, { action: 'ajouté', entity_type: 'Arme', entity_name: name.trim(), user_id: req.user.id, user_rp_name: req.user.rp_name, details: category.trim() });
+    addLog(pool, { action: 'ajouté', entity_type: 'Arme', entity_name: name.trim(), user_id: req.user.id, user_rp_name: req.user.rp_name, details: category.trim(), tenant_id: req.user.tenant_id });
   } catch (err) {
     console.error('Add weapon error:', err);
     res.status(500).json({ error: 'Erreur serveur.' });
@@ -60,10 +61,10 @@ router.patch('/:id/assign', auth, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'UPDATE weapons SET assigned_to = $1 WHERE id = $2 RETURNING *',
-      [userId, id]
+      'UPDATE weapons SET assigned_to = $1 WHERE id = $2 AND tenant_id = $3 RETURNING *',
+      [userId, id, req.user.tenant_id]
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Arme introuvable.' });
+    if (!result.rows.length) return res.status(404).json({ error: 'Arme introuvable.' });
 
     const full = await pool.query(`
       SELECT w.id, w.name, w.category, w.notes, w.created_at,
@@ -79,7 +80,7 @@ router.patch('/:id/assign', auth, async (req, res) => {
     res.json(full.rows[0]);
 
     const memberName = full.rows[0].assigned_to_name || 'Aucun';
-    addLog(pool, { action: 'attribué', entity_type: 'Arme', entity_name: result.rows[0].name, user_id: req.user.id, user_rp_name: req.user.rp_name, details: `→ ${memberName}` });
+    addLog(pool, { action: 'attribué', entity_type: 'Arme', entity_name: result.rows[0].name, user_id: req.user.id, user_rp_name: req.user.rp_name, details: `→ ${memberName}`, tenant_id: req.user.tenant_id });
   } catch (err) {
     console.error('Assign weapon error:', err);
     res.status(500).json({ error: 'Erreur serveur.' });
@@ -92,11 +93,11 @@ router.delete('/:id', auth, async (req, res) => {
   if (isNaN(id)) return res.status(400).json({ error: 'ID invalide.' });
 
   try {
-    const result = await pool.query('DELETE FROM weapons WHERE id = $1 RETURNING name', [id]);
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Arme introuvable.' });
+    const result = await pool.query('DELETE FROM weapons WHERE id = $1 AND tenant_id = $2 RETURNING name', [id, req.user.tenant_id]);
+    if (!result.rows.length) return res.status(404).json({ error: 'Arme introuvable.' });
     res.json({ success: true, id });
 
-    addLog(pool, { action: 'supprimé', entity_type: 'Arme', entity_name: result.rows[0].name, user_id: req.user.id, user_rp_name: req.user.rp_name });
+    addLog(pool, { action: 'supprimé', entity_type: 'Arme', entity_name: result.rows[0].name, user_id: req.user.id, user_rp_name: req.user.rp_name, tenant_id: req.user.tenant_id });
   } catch (err) {
     console.error('Delete weapon error:', err);
     res.status(500).json({ error: 'Erreur serveur.' });

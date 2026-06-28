@@ -4,11 +4,12 @@ const auth    = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// GET /api/bible — toutes les pages, triées par page_order
+// GET /api/bible — toutes les pages du tenant, triées par page_order
 router.get('/', auth, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, title, content, page_order, created_at FROM bible_pages ORDER BY page_order ASC, id ASC'
+      'SELECT id, title, content, page_order, created_at FROM bible_pages WHERE tenant_id = $1 ORDER BY page_order ASC, id ASC',
+      [req.user.tenant_id]
     );
     res.json(result.rows);
   } catch (err) {
@@ -24,12 +25,15 @@ router.post('/', auth, async (req, res) => {
   if (!title || !title.trim()) return res.status(400).json({ error: 'Titre requis.' });
 
   try {
-    const orderRes = await pool.query('SELECT COALESCE(MAX(page_order), 0) + 1 AS next_order FROM bible_pages');
+    const orderRes = await pool.query(
+      'SELECT COALESCE(MAX(page_order), 0) + 1 AS next_order FROM bible_pages WHERE tenant_id = $1',
+      [req.user.tenant_id]
+    );
     const next_order = orderRes.rows[0].next_order;
 
     const result = await pool.query(
-      'INSERT INTO bible_pages (title, content, page_order, created_by) VALUES ($1, $2, $3, $4) RETURNING id, title, content, page_order, created_at',
-      [title.trim(), content || '', next_order, req.user.id]
+      'INSERT INTO bible_pages (title, content, page_order, created_by, tenant_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, title, content, page_order, created_at',
+      [title.trim(), content || '', next_order, req.user.id, req.user.tenant_id]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -46,10 +50,10 @@ router.put('/:id', auth, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'UPDATE bible_pages SET title = $1, content = $2, updated_at = NOW() WHERE id = $3 RETURNING id, title, content, page_order, created_at',
-      [title.trim(), content || '', req.params.id]
+      'UPDATE bible_pages SET title = $1, content = $2, updated_at = NOW() WHERE id = $3 AND tenant_id = $4 RETURNING id, title, content, page_order, created_at',
+      [title.trim(), content || '', req.params.id, req.user.tenant_id]
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Page introuvable.' });
+    if (!result.rows.length) return res.status(404).json({ error: 'Page introuvable.' });
     res.json(result.rows[0]);
   } catch (err) {
     console.error('Bible update error:', err);
@@ -57,10 +61,10 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// PATCH /api/bible/reorder — admin uniquement, réordonner les pages
+// PATCH /api/bible/reorder — admin uniquement
 router.patch('/reorder', auth, async (req, res) => {
   if (!req.user.is_admin) return res.status(403).json({ error: 'Réservé aux administrateurs.' });
-  const { order } = req.body; // array of ids in new order
+  const { order } = req.body;
   if (!Array.isArray(order)) return res.status(400).json({ error: 'Format invalide.' });
 
   try {
@@ -68,7 +72,7 @@ router.patch('/reorder', auth, async (req, res) => {
     try {
       await client.query('BEGIN');
       for (let i = 0; i < order.length; i++) {
-        await client.query('UPDATE bible_pages SET page_order = $1 WHERE id = $2', [i + 1, order[i]]);
+        await client.query('UPDATE bible_pages SET page_order = $1 WHERE id = $2 AND tenant_id = $3', [i + 1, order[i], req.user.tenant_id]);
       }
       await client.query('COMMIT');
     } catch (e) {
@@ -88,7 +92,7 @@ router.patch('/reorder', auth, async (req, res) => {
 router.delete('/:id', auth, async (req, res) => {
   if (!req.user.is_admin) return res.status(403).json({ error: 'Réservé aux administrateurs.' });
   try {
-    await pool.query('DELETE FROM bible_pages WHERE id = $1', [req.params.id]);
+    await pool.query('DELETE FROM bible_pages WHERE id = $1 AND tenant_id = $2', [req.params.id, req.user.tenant_id]);
     res.json({ success: true });
   } catch (err) {
     console.error('Bible delete error:', err);

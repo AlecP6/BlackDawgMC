@@ -88,28 +88,32 @@ document.getElementById('confirmModal')?.addEventListener('click', (e) => {
 // ===== AUTH =====
 // currentUser : objet utilisateur courant (id, rp_name, is_admin…) ; null si déconnecté.
 // authToken   : JWT renvoyé par le serveur, inclus dans chaque requête API.
-let currentUser = null;
-let authToken   = null;
+let currentUser  = null;
+let authToken    = null;
+let currentTenant = null; // { id, name, slug, color, logo }
 
 // Relit la session depuis sessionStorage (persist le temps de l'onglet, pas au-delà).
-// Retourne { token, user } ou null si aucune session n'est enregistrée.
+// Retourne { token, user, tenant } ou null si aucune session n'est enregistrée.
 function getStoredSession() {
-  const token = sessionStorage.getItem('cc_token');
-  const user  = sessionStorage.getItem('cc_user');
-  if (token && user) return { token, user: JSON.parse(user) };
+  const token  = sessionStorage.getItem('cc_token');
+  const user   = sessionStorage.getItem('cc_user');
+  const tenant = sessionStorage.getItem('cc_tenant');
+  if (token && user) return { token, user: JSON.parse(user), tenant: tenant ? JSON.parse(tenant) : null };
   return null;
 }
 
-// Persiste le token JWT et les données utilisateur pour la durée de l'onglet.
-function storeSession(token, user) {
+// Persiste le token JWT, les données utilisateur et le tenant pour la durée de l'onglet.
+function storeSession(token, user, tenant) {
   sessionStorage.setItem('cc_token', token);
   sessionStorage.setItem('cc_user', JSON.stringify(user));
+  if (tenant) sessionStorage.setItem('cc_tenant', JSON.stringify(tenant));
 }
 
 // Supprime la session stockée (appel lors de la déconnexion).
 function clearStoredSession() {
   sessionStorage.removeItem('cc_token');
   sessionStorage.removeItem('cc_user');
+  sessionStorage.removeItem('cc_tenant');
 }
 
 function showAuthOverlay() {
@@ -150,12 +154,14 @@ document.getElementById('goLogin')?.addEventListener('click', (e) => {
 
 // Register
 document.getElementById('btnRegister')?.addEventListener('click', async () => {
+  const group_code  = document.getElementById('regGroupCode').value.trim();
   const username    = document.getElementById('regId').value.trim();
   const rp_name     = document.getElementById('regRpName').value.trim();
   const password    = document.getElementById('regPwd').value;
   const confirm     = document.getElementById('regPwdConfirm').value;
   const invite_code = document.getElementById('regInviteCode').value.trim();
 
+  if (!group_code)  return setAuthError('panelRegister', 'Le code de groupe est requis.');
   if (!username)    return setAuthError('panelRegister', 'L\'identifiant est requis.');
   if (!rp_name)     return setAuthError('panelRegister', 'Le nom RP est requis.');
   if (!password)    return setAuthError('panelRegister', 'Le mot de passe est requis.');
@@ -168,11 +174,11 @@ document.getElementById('btnRegister')?.addEventListener('click', async () => {
     const res  = await fetch(`${API}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, rp_name, password, invite_code }),
+      body: JSON.stringify({ username, rp_name, password, invite_code, group_code }),
     });
     const data = await res.json();
     if (!res.ok) return setAuthError('panelRegister', data.error || 'Erreur.');
-    loginUser(data.token, data.user);
+    loginUser(data.token, data.user, data.tenant);
   } catch {
     setAuthError('panelRegister', 'Impossible de contacter le serveur.');
   } finally {
@@ -182,22 +188,24 @@ document.getElementById('btnRegister')?.addEventListener('click', async () => {
 
 // Login
 document.getElementById('btnLogin')?.addEventListener('click', async () => {
-  const username = document.getElementById('loginId').value.trim();
-  const password = document.getElementById('loginPwd').value;
+  const group_code = document.getElementById('loginGroupCode').value.trim();
+  const username   = document.getElementById('loginId').value.trim();
+  const password   = document.getElementById('loginPwd').value;
 
-  if (!username) return setAuthError('panelLogin', 'L\'identifiant est requis.');
-  if (!password) return setAuthError('panelLogin', 'Le mot de passe est requis.');
+  if (!group_code) return setAuthError('panelLogin', 'Le code de groupe est requis.');
+  if (!username)   return setAuthError('panelLogin', 'L\'identifiant est requis.');
+  if (!password)   return setAuthError('panelLogin', 'Le mot de passe est requis.');
 
   setAuthLoading('btnLogin', true);
   try {
     const res  = await fetch(`${API}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, group_code }),
     });
     const data = await res.json();
     if (!res.ok) return setAuthError('panelLogin', data.error || 'Erreur.');
-    loginUser(data.token, data.user);
+    loginUser(data.token, data.user, data.tenant);
   } catch {
     setAuthError('panelLogin', 'Impossible de contacter le serveur.');
   } finally {
@@ -225,12 +233,33 @@ document.querySelectorAll('.auth-input').forEach(input => {
 });
 
 // Met à jour les variables globales de session, persiste et initialise l'interface.
-function loginUser(token, user) {
-  currentUser = user;
-  authToken   = token;
-  storeSession(token, user);
+function loginUser(token, user, tenant) {
+  currentUser   = user;
+  authToken     = token;
+  currentTenant = tenant || null;
+  storeSession(token, user, tenant);
+  applyTenantBranding(tenant);
   hideAuthOverlay();
   onUserLoggedIn(user);
+}
+
+// Applique le branding du tenant (couleur, logo, nom) à l'interface.
+function applyTenantBranding(tenant) {
+  if (!tenant) return;
+  if (tenant.color) {
+    document.documentElement.style.setProperty('--accent', tenant.color);
+    document.documentElement.style.setProperty('--accent-hover', tenant.color + 'cc');
+  }
+  const logo = document.querySelector('.sidebar-img');
+  if (logo) logo.src = tenant.logo || 'image.png';
+
+  const logoText = document.querySelector('.logo-text');
+  if (logoText) logoText.textContent = (tenant.name || 'MC').toUpperCase();
+
+  const authLogoText = document.querySelector('.auth-logo-text');
+  if (authLogoText) authLogoText.textContent = tenant.name || 'MC';
+
+  document.title = (tenant.name || 'MC') + ' — Gestion RP';
 }
 
 // Appelé après une connexion réussie : met à jour l'avatar, le nom RP en topbar,
@@ -240,8 +269,10 @@ function onUserLoggedIn(user) {
   const initials = user.rp_name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   document.getElementById('userAvatar').textContent = initials;
   document.getElementById('userRpName').textContent = user.rp_name;
-  const adminNav = document.getElementById('adminNavItem');
-  if (adminNav) adminNav.style.display = user.is_admin ? '' : 'none';
+  const adminNav   = document.getElementById('adminNavItem');
+  const gestionNav = document.getElementById('gestionNavItem');
+  if (adminNav)   adminNav.style.display   = user.is_admin       ? '' : 'none';
+  if (gestionNav) gestionNav.style.display = user.is_super_admin ? '' : 'none';
   if (window._initBibleAdminBar) window._initBibleAdminBar();
   switchSection('comptabilite');
 }
@@ -249,10 +280,16 @@ function onUserLoggedIn(user) {
 // Logout
 document.getElementById('btnLogout')?.addEventListener('click', () => {
   clearStoredSession();
-  currentUser = null;
-  authToken   = null;
+  currentUser   = null;
+  authToken     = null;
+  currentTenant = null;
+  document.getElementById('loginGroupCode').value = '';
   document.getElementById('loginId').value = '';
   document.getElementById('loginPwd').value = '';
+  // Reset branding to defaults
+  document.documentElement.style.setProperty('--accent', '#ffffff');
+  const logo = document.querySelector('.sidebar-img');
+  if (logo) logo.src = 'image.png';
   clearAuthErrors();
   showPanel('panelLogin');
   showAuthOverlay();
@@ -272,12 +309,13 @@ const sectionTitles = {
   'missions': 'Missions',
   'admin': 'Administration',
   'bible': 'La Bible',
+  'gestion': 'Gestion des groupes',
 };
 
 // Restore session on load
 const saved = getStoredSession();
 if (saved) {
-  loginUser(saved.token, saved.user);
+  loginUser(saved.token, saved.user, saved.tenant);
   setTimeout(hideLoadingScreen, 600);
 } else {
   showAuthOverlay();
@@ -324,6 +362,9 @@ function switchSection(targetId) {
     if (targetId === 'bible') {
       if (window._fetchBible) window._fetchBible();
       if (window._initBibleAdminBar) window._initBibleAdminBar();
+    }
+    if (targetId === 'gestion') {
+      if (window._fetchTenants) window._fetchTenants();
     }
   }
 }
@@ -2401,3 +2442,270 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
     btn.textContent = isCollapsed ? '+' : '−';
   });
 });
+
+// ===== GESTION DES GROUPES (SUPER-ADMIN) =====
+(function () {
+  let tenants        = [];
+  let pendingLogoData = null;
+
+  const grid           = document.getElementById('gestionGrid');
+  const emptyMsg       = document.getElementById('gestionEmpty');
+  const btnCreate      = document.getElementById('btnCreateTenant');
+  const modal          = document.getElementById('tenantModal');
+  const modalTitle     = document.getElementById('tenantModalTitle');
+  const modalClose     = document.getElementById('tenantModalClose');
+  const modalCancel    = document.getElementById('tenantModalCancel');
+  const editIdInput    = document.getElementById('tenantEditId');
+  const nameInput      = document.getElementById('tenantName');
+  const slugInput      = document.getElementById('tenantSlug');
+  const colorInput     = document.getElementById('tenantColor');
+  const colorHex       = document.getElementById('tenantColorHex');
+  const logoZone       = document.getElementById('tenantLogoZone');
+  const logoInput      = document.getElementById('tenantLogoInput');
+  const logoContent    = document.getElementById('tenantLogoContent');
+  const logoPreview    = document.getElementById('tenantLogoPreview');
+  const logoPreviewImg = document.getElementById('tenantLogoPreviewImg');
+  const removeLogo     = document.getElementById('tenantRemoveLogo');
+  const codeGroup      = document.getElementById('tenantCodeGroup');
+  const inviteCodeEl   = document.getElementById('tenantInviteCode');
+  const btnCopyCode    = document.getElementById('btnCopyTenantCode');
+  const errorEl        = document.getElementById('tenantError');
+  const btnSave        = document.getElementById('btnSaveTenant');
+  const btnDelete      = document.getElementById('btnDeleteTenant');
+
+  // Sync color picker with hex display
+  colorInput?.addEventListener('input', () => {
+    colorHex.textContent = colorInput.value;
+  });
+
+  // Auto-slug from name (only if slug is empty or untouched)
+  nameInput?.addEventListener('input', () => {
+    if (!editIdInput.value) {
+      slugInput.value = nameInput.value.toLowerCase()
+        .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 30);
+    }
+  });
+
+  // Logo drop zone
+  function initLogoDropZone() {
+    if (!logoZone) return;
+    logoZone.addEventListener('click', () => logoInput?.click());
+    logoZone.addEventListener('dragover', (e) => { e.preventDefault(); logoZone.classList.add('drag-over'); });
+    logoZone.addEventListener('dragleave', () => logoZone.classList.remove('drag-over'));
+    logoZone.addEventListener('drop', (e) => {
+      e.preventDefault(); logoZone.classList.remove('drag-over');
+      const file = e.dataTransfer?.files[0];
+      if (file) loadLogoFile(file);
+    });
+    logoInput?.addEventListener('change', () => {
+      if (logoInput.files[0]) loadLogoFile(logoInput.files[0]);
+    });
+    removeLogo?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      pendingLogoData = null;
+      logoPreview.style.display  = 'none';
+      logoContent.style.display  = '';
+      logoPreviewImg.src = '';
+    });
+  }
+
+  function loadLogoFile(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      pendingLogoData = e.target.result;
+      logoPreviewImg.src = pendingLogoData;
+      logoPreview.style.display = '';
+      logoContent.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  initLogoDropZone();
+
+  // Fetch and render tenants list
+  async function fetchTenants() {
+    if (!currentUser?.is_super_admin) return;
+    try {
+      const res  = await fetch(`${API}/tenants`, { headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) return;
+      tenants = data;
+      renderGrid();
+    } catch {}
+  }
+
+  function renderGrid() {
+    if (!grid) return;
+    // Clear existing cards (keep empty message)
+    grid.querySelectorAll('.tenant-card').forEach(c => c.remove());
+    emptyMsg.style.display = tenants.length ? 'none' : '';
+
+    tenants.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'tenant-card';
+      card.innerHTML = `
+        <div class="tenant-card-color" style="background:${t.primary_color || '#ffffff'}"></div>
+        <div class="tenant-card-info">
+          <div class="tenant-card-name">${t.name}</div>
+          <div class="tenant-card-slug">Code : <strong>${t.slug}</strong></div>
+        </div>
+        <button class="btn-edit-tenant" data-id="${t.id}" title="Modifier">✏</button>
+      `;
+      grid.appendChild(card);
+    });
+
+    grid.querySelectorAll('.btn-edit-tenant').forEach(btn => {
+      btn.addEventListener('click', () => openModal_edit(parseInt(btn.dataset.id)));
+    });
+  }
+
+  function openModal_create() {
+    editIdInput.value = '';
+    nameInput.value   = '';
+    slugInput.value   = '';
+    colorInput.value  = '#ffffff';
+    colorHex.textContent = '#ffffff';
+    pendingLogoData   = null;
+    logoPreview.style.display = 'none';
+    logoContent.style.display = '';
+    logoPreviewImg.src = '';
+    codeGroup.style.display = 'none';
+    btnDelete.style.display = 'none';
+    slugInput.disabled = false;
+    modalTitle.textContent = 'Nouveau groupe';
+    errorEl.style.display  = 'none';
+    openModal('tenantModal');
+  }
+
+  async function openModal_edit(id) {
+    const t = tenants.find(x => x.id === id);
+    if (!t) return;
+
+    // Fetch full tenant (with logo)
+    try {
+      const res  = await fetch(`${API}/tenants/${id}`, { headers: authHeaders() });
+      const full = await res.json();
+
+      editIdInput.value    = full.id;
+      nameInput.value      = full.name;
+      slugInput.value      = full.slug;
+      slugInput.disabled   = true;
+      colorInput.value     = full.primary_color || '#ffffff';
+      colorHex.textContent = full.primary_color || '#ffffff';
+      pendingLogoData      = full.logo_data || null;
+
+      if (full.logo_data) {
+        logoPreviewImg.src = full.logo_data;
+        logoPreview.style.display = '';
+        logoContent.style.display = 'none';
+      } else {
+        logoPreview.style.display = 'none';
+        logoContent.style.display = '';
+        logoPreviewImg.src = '';
+      }
+
+      // Show invite code for existing tenant
+      codeGroup.style.display = '';
+      inviteCodeEl.textContent = generateDailyCode(full.slug);
+
+      btnDelete.style.display = '';
+      modalTitle.textContent  = `Modifier : ${full.name}`;
+      errorEl.style.display   = 'none';
+      openModal('tenantModal');
+    } catch {}
+  }
+
+  // Client-side daily code preview (mirrors backend logic)
+  function generateDailyCode(slug) {
+    return '??????'; // Displayed as placeholder; real code comes from backend
+  }
+
+  // Actually fetch the code from backend when modal opens in edit mode
+  async function fetchInviteCode(tenantId) {
+    try {
+      const res  = await fetch(`${API}/admin/register-code`, { headers: authHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        inviteCodeEl.textContent = data.code;
+      }
+    } catch {}
+  }
+
+  btnCopyCode?.addEventListener('click', () => {
+    navigator.clipboard.writeText(inviteCodeEl.textContent).then(() => showToast('Code copié !'));
+  });
+
+  function closeModal_tenant() {
+    closeModal('tenantModal');
+    pendingLogoData = null;
+    logoInput.value = '';
+  }
+
+  btnCreate?.addEventListener('click', openModal_create);
+  modalClose?.addEventListener('click', closeModal_tenant);
+  modalCancel?.addEventListener('click', closeModal_tenant);
+  modal?.addEventListener('click', (e) => { if (e.target === modal) closeModal_tenant(); });
+
+  btnSave?.addEventListener('click', async () => {
+    const id    = editIdInput.value;
+    const name  = nameInput.value.trim();
+    const slug  = slugInput.value.trim();
+    const color = colorInput.value;
+
+    if (!name) { errorEl.textContent = 'Le nom est requis.'; errorEl.style.display = ''; return; }
+    if (!id && !slug) { errorEl.textContent = 'Le code de groupe est requis.'; errorEl.style.display = ''; return; }
+
+    btnSave.disabled = true; btnSave.textContent = 'Enregistrement...';
+    errorEl.style.display = 'none';
+
+    try {
+      let res, data;
+      if (id) {
+        // Update
+        res  = await fetch(`${API}/tenants/${id}`, {
+          method: 'PATCH',
+          headers: authHeaders(),
+          body: JSON.stringify({ name, primary_color: color, logo_data: pendingLogoData }),
+        });
+      } else {
+        // Create
+        res  = await fetch(`${API}/tenants`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ name, slug, primary_color: color, logo_data: pendingLogoData }),
+        });
+      }
+      data = await res.json();
+      if (!res.ok) { errorEl.textContent = data.error || 'Erreur.'; errorEl.style.display = ''; return; }
+
+      showToast(id ? 'Groupe mis à jour.' : 'Groupe créé.');
+      closeModal_tenant();
+      await fetchTenants();
+    } catch {
+      errorEl.textContent = 'Impossible de contacter le serveur.'; errorEl.style.display = '';
+    } finally {
+      btnSave.disabled = false; btnSave.textContent = 'Enregistrer';
+    }
+  });
+
+  btnDelete?.addEventListener('click', () => {
+    const id   = editIdInput.value;
+    const name = nameInput.value;
+    if (!id) return;
+    confirmAction(`Supprimer le groupe "${name}" ? Toutes ses données seront perdues.`, async () => {
+      try {
+        const res = await fetch(`${API}/tenants/${id}`, { method: 'DELETE', headers: authHeaders() });
+        if (res.ok) {
+          showToast('Groupe supprimé.');
+          closeModal_tenant();
+          fetchTenants();
+        } else {
+          const d = await res.json();
+          showToast(d.error || 'Erreur.', 'error');
+        }
+      } catch { showToast('Erreur réseau.', 'error'); }
+    }, 'Supprimer');
+  });
+
+  window._fetchTenants = fetchTenants;
+})();

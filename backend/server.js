@@ -13,6 +13,7 @@ const missionsRoutes     = require('./routes/missions');
 const adminRoutes        = require('./routes/admin');
 const { router: logsRoutes } = require('./routes/logs');
 const bibleRoutes            = require('./routes/bible');
+const tenantsRoutes          = require('./routes/tenants');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -38,6 +39,7 @@ app.use('/api/missions',     missionsRoutes);
 app.use('/api/admin',        adminRoutes);
 app.use('/api/logs',         logsRoutes);
 app.use('/api/bible',        bibleRoutes);
+app.use('/api/tenants',      tenantsRoutes);
 
 // ── Health check ──
 app.get('/api/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
