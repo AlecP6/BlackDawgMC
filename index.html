@@ -127,11 +127,6 @@
  <li id="gestionNavItem" style="display:none"><a href="#" class="nav-item nav-item-gestion" data-section="gestion"><span class="nav-label">Gestion</span>
  </a>
  </li>
- <li class="nav-separator" aria-hidden="true"></li>
- <li>
- <a href="#" class="nav-item nav-item-bible" data-section="bible"><span class="nav-label">La Bible</span>
- </a>
- </li>
  </ul>
  </nav>
 
@@ -513,7 +508,7 @@
 
  <!-- Gestion (super-admin uniquement) -->
  <section class="section" id="section-gestion">
- <div class="section-header"><p class="section-desc">Gestion des groupes MC sur la plateforme.</p></div>
+ <div class="section-header"><p class="section-desc">Gestion des groupes illégaux sur la plateforme.</p></div>
 
  <div class="gestion-toolbar">
  <button class="btn-submit" id="btnCreateTenant">+ Nouveau groupe</button>
@@ -576,87 +571,6 @@
  </div>
  </section>
 
- <!-- Bible -->
- <section class="section" id="section-bible">
- <div class="section-header"><p class="section-desc">Règlements, lore et documents officiels du groupe.</p></div>
-
- <div class="bible-container">
-
-   <!-- Couverture (état vide) -->
-   <div class="bible-cover" id="bibleCover">
-     <div class="bible-cover-inner">
-       <img src="" alt="Logo" class="bible-cover-logo" id="bibleCoverLogo" style="display:none" />
-       <div class="bible-cover-title">LA BIBLE</div>
-       <div class="bible-cover-subtitle" id="bibleCoverSubtitle"></div>
-       <p class="bible-empty-hint" id="bibleEmptyHint">Aucune page pour l'instant.</p>
-     </div>
-   </div>
-
-   <!-- Livre ouvert — deux pages -->
-   <div class="bible-open-book" id="bibleOpenBook" style="display:none">
-
-     <!-- Page gauche -->
-     <div class="bible-half bible-half-left">
-       <div class="bible-pg-inner" id="bibleInnerLeft" style="display:none">
-         <div class="bible-pg-num-bar">
-           <span class="bible-pg-num" id="bibleNumLeft"></span>
-           <span class="bible-pg-title-sm" id="bibleTitleLeft"></span>
-         </div>
-         <div class="bible-pg-body" id="bibleBodyLeft"></div>
-       </div>
-       <div class="bible-blank-half" id="bibleBlankLeft"></div>
-     </div>
-
-     <!-- Reliure -->
-     <div class="bible-book-spine"></div>
-
-     <!-- Page droite -->
-     <div class="bible-half bible-half-right">
-       <div class="bible-pg-inner" id="bibleInnerRight" style="display:none">
-         <div class="bible-pg-num-bar">
-           <span class="bible-pg-num" id="bibleNumRight"></span>
-           <span class="bible-pg-title-sm" id="bibleTitleRight"></span>
-         </div>
-         <div class="bible-pg-body" id="bibleBodyRight"></div>
-       </div>
-       <div class="bible-blank-half" id="bibleBlankRight"></div>
-     </div>
-
-     <!-- Carte flip (absolue, animée) -->
-     <div class="bible-flip-card" id="bibleFlipCard" style="display:none">
-       <div class="bible-flip-face" id="bibleFlipFront">
-         <div class="bible-pg-num-bar">
-           <span class="bible-pg-num" id="bibleFlipNumF"></span>
-           <span class="bible-pg-title-sm" id="bibleFlipTitleF"></span>
-         </div>
-         <div class="bible-pg-body" id="bibleFlipBodyF"></div>
-       </div>
-       <div class="bible-flip-face face-b" id="bibleFlipBack">
-         <div class="bible-pg-num-bar">
-           <span class="bible-pg-num" id="bibleFlipNumB"></span>
-           <span class="bible-pg-title-sm" id="bibleFlipTitleB"></span>
-         </div>
-         <div class="bible-pg-body" id="bibleFlipBodyB"></div>
-       </div>
-     </div>
-   </div>
-
-   <!-- Navigation -->
-   <div class="bible-nav" id="bibleNav" style="display:none">
-     <button class="bible-btn-prev" id="biblePrev" disabled>←</button>
-     <span class="bible-nav-info" id="bibleNavInfo"></span>
-     <button class="bible-btn-next" id="bibleNext">→</button>
-   </div>
-
-   <!-- Actions admin -->
-   <div class="bible-admin-bar" id="bibleAdminBar" style="display:none">
-     <button class="btn-submit bible-btn-add" id="bibleBtnAdd">+ Nouvelle page</button>
-     <button class="btn-cancel bible-btn-edit" id="bibleBtnEdit" style="display:none">Modifier</button>
-     <button class="btn-delete bible-btn-del" id="bibleBtnDel" style="display:none">✕ Supprimer</button>
-   </div>
-
- </div>
- </section>
 
  </main>
  </div>
@@ -691,54 +605,6 @@
  </div>
  </div>
 
-<!-- Modal édition page Bible -->
-<div class="modal-overlay" id="biblePageModal">
-<div class="modal-box modal-box-lg">
-<div class="modal-header"><h3 id="biblePageModalTitle">Nouvelle page</h3>
-<button class="modal-close" id="biblePageModalClose">✕</button>
-</div>
-<div class="modal-body">
-<div class="form-group"><label class="form-label" for="bibleEditTitle">Titre de la page</label>
-<input type="text" id="bibleEditTitle" class="form-input" placeholder="Ex : Règlement intérieur..." autocomplete="off" />
-</div>
-
-<!-- Toggle mode texte / image -->
-<div class="bible-mode-toggle">
-<button class="bible-mode-btn active" id="bibleModeText">Texte</button>
-<button class="bible-mode-btn" id="bibleModeImage">Image (Canva)</button>
-</div>
-
-<!-- Mode texte -->
-<div class="form-group form-group-full" id="bibleTextArea">
-<label class="form-label" for="bibleEditContent">Contenu</label>
-<textarea id="bibleEditContent" class="form-input bible-textarea" placeholder="Rédigez le contenu de cette page..." rows="14"></textarea>
-</div>
-
-<!-- Mode image -->
-<div class="form-group form-group-full" id="bibleImageArea" style="display:none">
-<label class="form-label">Image exportée depuis Canva</label>
-<div class="bible-drop-zone" id="bibleDropZone">
-<input type="file" id="bibleImageInput" accept="image/png,image/jpeg,image/webp" style="display:none" />
-<div class="bible-drop-content" id="bibleDropContent">
-<div class="bible-drop-icon">+</div>
-<p>Glissez une image ici ou <span class="bible-drop-link">cliquez pour choisir</span></p>
-<p class="bible-drop-hint">PNG, JPG, WEBP — max 8 Mo</p>
-</div>
-<div class="bible-image-preview" id="bibleImagePreview" style="display:none">
-<img id="biblePreviewImg" src="" alt="Preview" />
-<button class="bible-preview-remove" id="bibleRemoveImg" title="Supprimer l'image">✕</button>
-</div>
-</div>
-</div>
-
-<div class="auth-error" id="biblePageError" style="display:none"></div>
-</div>
-<div class="modal-footer">
-<button class="btn-cancel" id="biblePageModalCancel">Annuler</button>
-<button class="btn-submit" id="btnSaveBiblePage">Enregistrer</button>
-</div>
-</div>
-</div>
 
 <!-- Modal édition de profil -->
 <div class="modal-overlay" id="profileEditModal">
@@ -777,7 +643,7 @@
 <div class="modal-body">
 <input type="hidden" id="tenantEditId" />
 <div class="form-group"><label class="form-label" for="tenantName">Nom du groupe</label>
-<input type="text" id="tenantName" class="form-input" placeholder="Ex: Ghost Riders MC" autocomplete="off" />
+<input type="text" id="tenantName" class="form-input" placeholder="Ex: Ghost Riders, Pôle Illégal..." autocomplete="off" />
 </div>
 <div class="form-group"><label class="form-label" for="tenantSlug">Code de groupe <span class="auth-label-required">(utilisé à la connexion)</span></label>
 <input type="text" id="tenantSlug" class="form-input" placeholder="Ex: ghost-riders" autocomplete="off" />

@@ -12,7 +12,6 @@ const vehiclesRoutes     = require('./routes/vehicles');
 const missionsRoutes     = require('./routes/missions');
 const adminRoutes        = require('./routes/admin');
 const { router: logsRoutes } = require('./routes/logs');
-const bibleRoutes            = require('./routes/bible');
 const tenantsRoutes          = require('./routes/tenants');
 
 const app  = express();
@@ -38,7 +37,6 @@ app.use('/api/vehicles',     vehiclesRoutes);
 app.use('/api/missions',     missionsRoutes);
 app.use('/api/admin',        adminRoutes);
 app.use('/api/logs',         logsRoutes);
-app.use('/api/bible',        bibleRoutes);
 app.use('/api/tenants',      tenantsRoutes);
 
 // ── Health check ──

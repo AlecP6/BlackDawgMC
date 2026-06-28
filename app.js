@@ -1,17 +1,17 @@
-Ôªø// ===== CONFIG =====
+// ===== CONFIG =====
 const API = '/api';
 
 // ===== ANIMATIONS UTILITAIRES =====
 
-// Applique une animation d'apparition d√©cal√©e (stagger) sur toutes les cartes d'une grille.
-// Chaque carte repart de opacity:0 puis se r√©anime avec un d√©lai de 55ms √ó son index,
-// produisant un effet visuel d'entr√©e en cascade plut√¥t qu'un apparition simultan√©e.
+// Applique une animation d'apparition dÈcalÈe (stagger) sur toutes les cartes d'une grille.
+// Chaque carte repart de opacity:0 puis se rÈanime avec un dÈlai de 55ms ◊ son index,
+// produisant un effet visuel d'entrÈe en cascade plutÙt qu'un apparition simultanÈe.
 function applyStagger(grid) {
   const cards = grid.querySelectorAll('.weapon-card, .group-card, .mission-card');
   cards.forEach((el, i) => {
     el.style.opacity = '0';
     el.style.animation = 'none';
-    // Double requestAnimationFrame n√©cessaire pour forcer le navigateur √† "voir"
+    // Double requestAnimationFrame nÈcessaire pour forcer le navigateur ‡ "voir"
     // le reset de l'animation avant de relancer la nouvelle.
     requestAnimationFrame(() => {
       el.style.animation = `fadeIn 0.35s cubic-bezier(.22,1,.36,1) ${i * 55}ms forwards`;
@@ -19,10 +19,10 @@ function applyStagger(grid) {
   });
 }
 
-// Anime un compteur num√©rique de 0 vers `target` sur 650ms avec un easing "ease-out cubic"
-// (d√©c√©l√©ration progressive). Le `formatter` optionnel est appliqu√© √† chaque frame
-// pour afficher des unit√©s (ex : formatAmount pour les montants $).
-// Si la valeur n'est pas num√©rique, elle est affich√©e directement sans animation.
+// Anime un compteur numÈrique de 0 vers `target` sur 650ms avec un easing "ease-out cubic"
+// (dÈcÈlÈration progressive). Le `formatter` optionnel est appliquÈ ‡ chaque frame
+// pour afficher des unitÈs (ex : formatAmount pour les montants $).
+// Si la valeur n'est pas numÈrique, elle est affichÈe directement sans animation.
 function animateCounter(el, target, formatter = null) {
   const num = parseFloat(String(target).replace(/[^0-9.-]/g, ''));
   if (isNaN(num)) { el.textContent = formatter ? formatter(target) : target; return; }
@@ -30,7 +30,7 @@ function animateCounter(el, target, formatter = null) {
   const duration = 650;
   const step = (now) => {
     const progress = Math.min((now - start) / duration, 1);
-    // Formule ease-out cubique : rapide au d√©but, ralentit vers la fin
+    // Formule ease-out cubique : rapide au dÈbut, ralentit vers la fin
     const eased = 1 - Math.pow(1 - progress, 3);
     const current = Math.floor(eased * num);
     el.textContent = formatter ? formatter(current) : current;
@@ -48,12 +48,12 @@ function hideLoadingScreen() {
 
 // ===== TOAST NOTIFICATIONS =====
 function showToast(message, type = 'success') {
-  const icons = { success: '‚úì', error: '‚úï', warning: '‚ö†' };
+  const icons = { success: '?', error: '?', warning: '?' };
   const container = document.getElementById('toastContainer');
   if (!container) return;
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
-  toast.innerHTML = `<span class="toast-icon">${icons[type] || '‚Ä¢'}</span><span>${message}</span>`;
+  toast.innerHTML = `<span class="toast-icon">${icons[type] || 'ï'}</span><span>${message}</span>`;
   container.appendChild(toast);
   requestAnimationFrame(() => { requestAnimationFrame(() => toast.classList.add('show')); });
   setTimeout(() => {
@@ -86,30 +86,51 @@ document.getElementById('confirmModal')?.addEventListener('click', (e) => {
 });
 
 // ===== AUTH =====
-// currentUser : objet utilisateur courant (id, rp_name, is_admin‚Ä¶) ; null si d√©connect√©.
-// authToken   : JWT renvoy√© par le serveur, inclus dans chaque requ√™te API.
+// currentUser : objet utilisateur courant (id, rp_name, is_adminÖ) ; null si dÈconnectÈ.
+// authToken   : JWT renvoyÈ par le serveur, inclus dans chaque requÍte API.
 let currentUser  = null;
 let authToken    = null;
 let currentTenant = null; // { id, name, slug, color, logo }
 
-// Relit la session depuis sessionStorage (persist le temps de l'onglet, pas au-del√†).
-// Retourne { token, user, tenant } ou null si aucune session n'est enregistr√©e.
+// DÈcode le payload d'un JWT sans vÈrification de signature (client-side uniquement).
+function decodeJWT(token) {
+  try {
+    const payload = token.split('.')[1];
+    return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+  } catch { return {}; }
+}
+
+// Relit la session depuis sessionStorage (persist le temps de l'onglet, pas au-del‡).
+// Fusionne le payload JWT dans le user pour garantir que is_super_admin, tenant_id etc. sont toujours ‡ jour.
 function getStoredSession() {
   const token  = sessionStorage.getItem('cc_token');
   const user   = sessionStorage.getItem('cc_user');
   const tenant = sessionStorage.getItem('cc_tenant');
-  if (token && user) return { token, user: JSON.parse(user), tenant: tenant ? JSON.parse(tenant) : null };
-  return null;
+  if (!token || !user) return null;
+
+  const storedUser   = JSON.parse(user);
+  const jwtPayload   = decodeJWT(token);
+  // Le payload JWT fait autoritÈ sur is_super_admin et is_admin
+  const mergedUser   = { ...storedUser, ...jwtPayload };
+  const storedTenant = tenant ? JSON.parse(tenant) : null;
+
+  // Si le tenant est encodÈ dans le JWT mais pas en session, on le reconstruit
+  const mergedTenant = storedTenant || (jwtPayload.tenant_id ? {
+    id: jwtPayload.tenant_id, name: jwtPayload.tenant_name, slug: jwtPayload.tenant_slug,
+    color: jwtPayload.tenant_color, logo: jwtPayload.tenant_logo,
+  } : null);
+
+  return { token, user: mergedUser, tenant: mergedTenant };
 }
 
-// Persiste le token JWT, les donn√©es utilisateur et le tenant pour la dur√©e de l'onglet.
+// Persiste le token JWT, les donnÈes utilisateur et le tenant pour la durÈe de l'onglet.
 function storeSession(token, user, tenant) {
   sessionStorage.setItem('cc_token', token);
   sessionStorage.setItem('cc_user', JSON.stringify(user));
   if (tenant) sessionStorage.setItem('cc_tenant', JSON.stringify(tenant));
 }
 
-// Supprime la session stock√©e (appel lors de la d√©connexion).
+// Supprime la session stockÈe (appel lors de la dÈconnexion).
 function clearStoredSession() {
   sessionStorage.removeItem('cc_token');
   sessionStorage.removeItem('cc_user');
@@ -165,7 +186,7 @@ document.getElementById('btnRegister')?.addEventListener('click', async () => {
   if (!username)    return setAuthError('panelRegister', 'L\'identifiant est requis.');
   if (!rp_name)     return setAuthError('panelRegister', 'Le nom RP est requis.');
   if (!password)    return setAuthError('panelRegister', 'Le mot de passe est requis.');
-  if (password.length < 4) return setAuthError('panelRegister', 'Mot de passe trop court (min. 4 caract√®res).');
+  if (password.length < 4) return setAuthError('panelRegister', 'Mot de passe trop court (min. 4 caractËres).');
   if (password !== confirm) return setAuthError('panelRegister', 'Les mots de passe ne correspondent pas.');
   if (!invite_code) return setAuthError('panelRegister', 'Le code d\'invitation est requis.');
 
@@ -219,7 +240,7 @@ function setAuthLoading(btnId, loading) {
   btn.disabled = loading;
   btn.textContent = loading
     ? 'Chargement...'
-    : btnId === 'btnLogin' ? 'Se connecter' : 'Cr√©er le compte';
+    : btnId === 'btnLogin' ? 'Se connecter' : 'CrÈer le compte';
 }
 
 // Enter key on auth inputs
@@ -232,7 +253,7 @@ document.querySelectorAll('.auth-input').forEach(input => {
   });
 });
 
-// Met √† jour les variables globales de session, persiste et initialise l'interface.
+// Met ‡ jour les variables globales de session, persiste et initialise l'interface.
 function loginUser(token, user, tenant) {
   currentUser   = user;
   authToken     = token;
@@ -243,7 +264,7 @@ function loginUser(token, user, tenant) {
   onUserLoggedIn(user);
 }
 
-// Applique le branding du tenant (couleur, logo, nom, favicon) √† l'interface.
+// Applique le branding du tenant (couleur, logo, nom, favicon) ‡ l'interface.
 function applyTenantBranding(tenant) {
   if (!tenant) return;
 
@@ -259,17 +280,6 @@ function applyTenantBranding(tenant) {
     else             { sidebarLogo.src = ''; sidebarLogo.style.display = 'none'; }
   }
 
-  // Logo couverture Bible
-  const bibleLogo = document.getElementById('bibleCoverLogo');
-  if (bibleLogo) {
-    if (tenant.logo) { bibleLogo.src = tenant.logo; bibleLogo.style.display = ''; }
-    else             { bibleLogo.src = ''; bibleLogo.style.display = 'none'; }
-  }
-
-  // Sous-titre couverture Bible
-  const bibleSubtitle = document.getElementById('bibleCoverSubtitle');
-  if (bibleSubtitle) bibleSubtitle.textContent = (tenant.name || '').toUpperCase();
-
   // Favicon dynamique
   const favicon = document.getElementById('faviconLink');
   if (favicon) favicon.href = tenant.logo || '';
@@ -284,13 +294,13 @@ function applyTenantBranding(tenant) {
   const loadingLogo = document.getElementById('loadingLogo');
   if (loadingLogo) loadingLogo.textContent = (tenant.name || 'Gestion RP').toUpperCase();
 
-  document.title = (tenant.name || 'Gestion RP') + ' ‚Äî Gestion RP';
+  document.title = (tenant.name || 'Gestion RP') + ' ó Gestion RP';
 }
 
-// Appel√© apr√®s une connexion r√©ussie : met √† jour l'avatar, le nom RP en topbar,
+// AppelÈ aprËs une connexion rÈussie : met ‡ jour l'avatar, le nom RP en topbar,
 // affiche le lien Admin uniquement aux admins et charge le dashboard.
 function onUserLoggedIn(user) {
-  // G√©n√®re les initiales √† partir du nom RP (ex : "Jean Dupont" ‚Üí "JD")
+  // GÈnËre les initiales ‡ partir du nom RP (ex : "Jean Dupont" ? "JD")
   const initials = user.rp_name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   document.getElementById('userAvatar').textContent = initials;
   document.getElementById('userRpName').textContent = user.rp_name;
@@ -298,7 +308,6 @@ function onUserLoggedIn(user) {
   const gestionNav = document.getElementById('gestionNavItem');
   if (adminNav)   adminNav.style.display   = user.is_admin       ? '' : 'none';
   if (gestionNav) gestionNav.style.display = user.is_super_admin ? '' : 'none';
-  if (window._initBibleAdminBar) window._initBibleAdminBar();
   switchSection('comptabilite');
 }
 
@@ -315,7 +324,7 @@ document.getElementById('btnLogout')?.addEventListener('click', () => {
   document.documentElement.style.setProperty('--accent', '#ffffff');
   const logo = document.getElementById('sidebarLogo');
   if (logo) { logo.src = ''; logo.style.display = 'none'; }
-  document.title = 'MC ‚Äî Gestion RP';
+  document.title = 'Gestion RP';
   clearAuthErrors();
   showPanel('panelLogin');
   showAuthOverlay();
@@ -326,15 +335,14 @@ const navItems    = document.querySelectorAll('.nav-item');
 const sections    = document.querySelectorAll('.section');
 const topbarTitle = document.getElementById('topbarTitle');
 
-// Correspondance entre l'id de section et le titre affich√© dans la topbar.
+// Correspondance entre l'id de section et le titre affichÈ dans la topbar.
 const sectionTitles = {
-  'comptabilite': 'Comptabilit√©',
+  'comptabilite': 'ComptabilitÈ',
   'armement': 'Armement',
   'groupes': 'Groupes',
-  'resume-tables': 'R√©sum√© Tables',
+  'resume-tables': 'RÈsumÈ Tables',
   'missions': 'Missions',
   'admin': 'Administration',
-  'bible': 'La Bible',
   'gestion': 'Gestion des groupes',
 };
 
@@ -348,8 +356,8 @@ if (saved) {
   hideLoadingScreen();
 }
 
-// Active la section cible (affichage CSS), met √† jour la navigation,
-// ferme la sidebar sur mobile et d√©clenche le chargement des donn√©es sp√©cifiques √† la section.
+// Active la section cible (affichage CSS), met ‡ jour la navigation,
+// ferme la sidebar sur mobile et dÈclenche le chargement des donnÈes spÈcifiques ‡ la section.
 function switchSection(targetId) {
   sections.forEach(s => s.classList.remove('active'));
   navItems.forEach(n => n.classList.remove('active'));
@@ -360,7 +368,7 @@ function switchSection(targetId) {
   if (topbarTitle)   topbarTitle.textContent = sectionTitles[targetId] || targetId;
   if (window.innerWidth <= 768) closeSidebar();
 
-  // Chargement des donn√©es par section ‚Äî chaque section charge ses donn√©es √† la demande (lazy loading)
+  // Chargement des donnÈes par section ó chaque section charge ses donnÈes ‡ la demande (lazy loading)
   if (currentUser) {
     if (targetId === 'comptabilite') {
       refreshComptabilite();
@@ -384,10 +392,6 @@ function switchSection(targetId) {
       fetchAdminUsers();
       fetchLogs();
       fetchTransactions();
-    }
-    if (targetId === 'bible') {
-      if (window._fetchBible) window._fetchBible();
-      if (window._initBibleAdminBar) window._initBibleAdminBar();
     }
     if (targetId === 'gestion') {
       if (window._fetchTenants) window._fetchTenants();
@@ -426,21 +430,21 @@ menuToggle?.addEventListener('click', () => {
 
 sidebarOverlay?.addEventListener('click', closeSidebar);
 
-// ===== COMPTABILIT√â =====
+// ===== COMPTABILIT… =====
 let transactions = [];
 let activeFilter = 'all';
 let txSort = { col: 'date', dir: 'desc' };
 let txPage = 1;
 const TX_PER_PAGE = 10;
 
-// Construit les en-t√™tes HTTP communs pour toutes les requ√™tes authentifi√©es :
+// Construit les en-tÍtes HTTP communs pour toutes les requÍtes authentifiÈes :
 // Content-Type JSON + JWT Bearer token issu de la session en cours.
 function authHeaders() {
   return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` };
 }
 
-// R√©cup√®re toutes les transactions depuis l'API, met √† jour le cache local,
-// puis d√©clenche : rendu du tableau, calcul des stats et tableau des cotisations.
+// RÈcupËre toutes les transactions depuis l'API, met ‡ jour le cache local,
+// puis dÈclenche : rendu du tableau, calcul des stats et tableau des cotisations.
 async function fetchTransactions() {
   try {
     const res  = await fetch(`${API}/transactions`, { headers: authHeaders() });
@@ -455,8 +459,8 @@ async function fetchTransactions() {
   }
 }
 
-// Formate un nombre en devise : pr√©fixe "$" avec s√©parateur de milliers (locale fr-CA utilise l'espace).
-// Ex : 1500 ‚Üí "$1 500"
+// Formate un nombre en devise : prÈfixe "$" avec sÈparateur de milliers (locale fr-CA utilise l'espace).
+// Ex : 1500 ? "$1 500"
 function formatAmount(n) {
   return '$' + Number(n).toLocaleString('fr-CA', { maximumFractionDigits: 0 });
 }
@@ -468,8 +472,8 @@ function formatDate(iso) {
     + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 }
 
-// Recalcule les totaux entr√©es/sorties/solde √† partir du cache `transactions`
-// et anime les cartes de statistiques. Le solde appara√Æt en rouge si n√©gatif.
+// Recalcule les totaux entrÈes/sorties/solde ‡ partir du cache `transactions`
+// et anime les cartes de statistiques. Le solde apparaÓt en rouge si nÈgatif.
 function updateStats() {
   const total_in  = transactions.filter(t => t.type === 'entree').reduce((s, t) => s + Number(t.amount), 0);
   const total_out = transactions.filter(t => t.type === 'sortie').reduce((s, t) => s + Number(t.amount), 0);
@@ -494,15 +498,15 @@ function renderPagination(containerId, currentPage, totalPages, onPageChange) {
   const container = document.getElementById(containerId);
   if (!container) return;
   if (totalPages <= 1) { container.innerHTML = ''; return; }
-  let html = `<button class="page-btn" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>‚Üê</button>`;
+  let html = `<button class="page-btn" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>?</button>`;
   for (let i = 1; i <= totalPages; i++) {
     if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 1) {
       html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
     } else if (Math.abs(i - currentPage) === 2) {
-      html += `<span class="page-dots">‚Ä¶</span>`;
+      html += `<span class="page-dots">Ö</span>`;
     }
   }
-  html += `<button class="page-btn" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>‚Üí</button>`;
+  html += `<button class="page-btn" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>?</button>`;
   container.innerHTML = html;
   container.querySelectorAll('.page-btn:not([disabled])').forEach(btn => {
     btn.addEventListener('click', () => onPageChange(Number(btn.dataset.page)));
@@ -555,9 +559,9 @@ function renderTransactions() {
     tr.dataset.id = t.id;
 
     const badgeClass  = t.type === 'entree' ? 'badge-entree' : 'badge-sortie';
-    const badgeLabel  = t.type === 'entree' ? '‚Üë Entr√©e' : '‚Üì Sortie';
+    const badgeLabel  = t.type === 'entree' ? '? EntrÈe' : '? Sortie';
     const amountClass = t.type === 'entree' ? 'amount-entree' : 'amount-sortie';
-    const sign        = t.type === 'entree' ? '+' : '‚àí';
+    const sign        = t.type === 'entree' ? '+' : '-';
 
     tr.innerHTML = `
       <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
@@ -565,13 +569,13 @@ function renderTransactions() {
       <td class="td-motif" title="${escapeHtml(t.motif)}">${escapeHtml(t.motif)}</td>
       <td class="${amountClass}">${sign}${formatAmount(t.amount)}</td>
       <td class="td-date">${formatDate(t.created_at)}</td>
-      <td><button class="btn-delete" data-id="${t.id}" title="Supprimer">‚úï</button></td>
+      <td><button class="btn-delete" data-id="${t.id}" title="Supprimer">?</button></td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-// √âchappe les caract√®res HTML sp√©ciaux pour pr√©venir les injections XSS
+// …chappe les caractËres HTML spÈciaux pour prÈvenir les injections XSS
 // lors de l'insertion de contenu utilisateur directement dans le DOM via innerHTML.
 function escapeHtml(str) {
   return String(str)
@@ -625,7 +629,7 @@ document.getElementById('btnAddTransaction')?.addEventListener('click', async ()
     transactions.unshift(data);
     updateStats();
     renderTransactions();
-    showToast('Transaction ajout√©e avec succ√®s.');
+    showToast('Transaction ajoutÈe avec succËs.');
 
     document.getElementById('transactionAmount').value = '';
     document.getElementById('transactionMotif').value  = '';
@@ -638,7 +642,7 @@ document.getElementById('btnAddTransaction')?.addEventListener('click', async ()
 });
 
 // Signale visuellement une erreur de saisie : bordure rouge + message dans le placeholder.
-// Se r√©initialise automatiquement apr√®s 2 secondes.
+// Se rÈinitialise automatiquement aprËs 2 secondes.
 function flashInput(id, msg) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -666,7 +670,7 @@ document.getElementById('transactionsList')?.addEventListener('click', async (e)
     transactions = transactions.filter(t => t.id !== id);
     updateStats();
     renderTransactions();
-    showToast('Transaction supprim√©e.');
+    showToast('Transaction supprimÈe.');
   } catch {
     showToast('Impossible de contacter le serveur.', 'error');
   }
@@ -696,10 +700,10 @@ document.querySelectorAll('.sortable-th').forEach(th => {
     txPage = 1;
     document.querySelectorAll('.sortable-th').forEach(h => {
       h.classList.remove('active-sort');
-      h.querySelector('.sort-arrow').textContent = '‚Üï';
+      h.querySelector('.sort-arrow').textContent = '?';
     });
     th.classList.add('active-sort');
-    th.querySelector('.sort-arrow').textContent = txSort.dir === 'asc' ? '‚Üë' : '‚Üì';
+    th.querySelector('.sort-arrow').textContent = txSort.dir === 'asc' ? '?' : '?';
     renderTransactions();
   });
 });
@@ -714,7 +718,7 @@ const WP_PER_PAGE = 12;
 let assignTarget = null;    // id de l'arme dont la modale d'attribution est ouverte
 
 const CATEGORY_ICONS = {
-  'Arme √† feu': '',
+  'Arme ‡ feu': '',
   'Arme blanche': '',
 };
 
@@ -729,8 +733,8 @@ async function fetchWeapons() {
   } catch { console.error('Erreur chargement armes.'); }
 }
 
-// R√©cup√®re la liste des membres et repeuple les deux selects d'attribution
-// (armes et v√©hicules) qui d√©pendent de cette liste.
+// RÈcupËre la liste des membres et repeuple les deux selects d'attribution
+// (armes et vÈhicules) qui dÈpendent de cette liste.
 async function fetchMembers() {
   try {
     const res  = await fetch(`${API}/members`, { headers: authHeaders() });
@@ -750,8 +754,8 @@ function updateWeaponStats() {
   animateCounter(document.getElementById('weaponStatFree'),     total - assigned);
 }
 
-// Retourne les armes correspondant au filtre actif (disponible / attribu√©e / toutes)
-// ET √† la recherche textuelle (portant sur le nom ou la cat√©gorie).
+// Retourne les armes correspondant au filtre actif (disponible / attribuÈe / toutes)
+// ET ‡ la recherche textuelle (portant sur le nom ou la catÈgorie).
 function getFilteredWeapons() {
   return weapons.filter(w => {
     if (weaponFilter === 'free'     && w.assigned_to)  return false;
@@ -790,10 +794,10 @@ function renderWeapons() {
     card.dataset.id = w.id;
 
     const icon     = CATEGORY_ICONS[w.category] || '';
-    // G√©n√®re les initiales du propri√©taire depuis son nom RP (ex : "Jean Dupont" ‚Üí "JD").
+    // GÈnËre les initiales du propriÈtaire depuis son nom RP (ex : "Jean Dupont" ? "JD").
     const initials = w.assigned_to_name
       ? w.assigned_to_name.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2)
-      : '‚Äî';
+      : 'ó';
 
     card.innerHTML = `
       <div class="weapon-card-top">
@@ -811,9 +815,9 @@ function renderWeapons() {
         </div>
         <div class="weapon-card-actions">
           <button class="btn-assign" data-id="${w.id}" title="Attribuer">
-            ${w.assigned_to ? '‚Ü© Modifier' : '+ Attribuer'}
+            ${w.assigned_to ? '? Modifier' : '+ Attribuer'}
           </button>
-          <button class="btn-delete" data-weapon-id="${w.id}" title="Supprimer">‚úï</button>
+          <button class="btn-delete" data-weapon-id="${w.id}" title="Supprimer">?</button>
         </div>
       </div>
     `;
@@ -822,7 +826,7 @@ function renderWeapons() {
   applyStagger(grid);
 }
 
-// R√©initialise et repeuple le <select> d'attribution des armes avec la liste
+// RÈinitialise et repeuple le <select> d'attribution des armes avec la liste
 // des membres actuels. L'option vide permet de retirer une attribution existante.
 function populateAssignSelect() {
   const sel = document.getElementById('assignSelect');
@@ -843,7 +847,7 @@ document.getElementById('btnAddWeapon')?.addEventListener('click', async () => {
   const notes    = document.getElementById('weaponNotes').value.trim();
 
   if (!name)     return flashInput('weaponName',     'Nom requis');
-  if (!category) return flashInput('weaponCategory', 'Cat√©gorie requise');
+  if (!category) return flashInput('weaponCategory', 'CatÈgorie requise');
 
   const btn = document.getElementById('btnAddWeapon');
   btn.disabled = true; btn.textContent = 'Ajout...';
@@ -919,8 +923,8 @@ document.getElementById('btnConfirmAssign')?.addEventListener('click', async () 
   } catch { showToast('Impossible de contacter le serveur.', 'error'); }
 });
 
-// Ouvre/ferme une modale par son id. closeModal remet √©galement assignTarget √† null
-// pour √©viter qu'une ancienne cible ne soit r√©utilis√©e par erreur.
+// Ouvre/ferme une modale par son id. closeModal remet Ègalement assignTarget ‡ null
+// pour Èviter qu'une ancienne cible ne soit rÈutilisÈe par erreur.
 function openModal(id) {
   document.getElementById(id).classList.add('open');
 }
@@ -958,7 +962,7 @@ document.getElementById('weaponSearch')?.addEventListener('input', (e) => {
 let groups      = [];
 let groupSearch = '';
 
-// R√©cup√®re les groupes, les affiche dans la grille et met √† jour les polygones sur la carte
+// RÈcupËre les groupes, les affiche dans la grille et met ‡ jour les polygones sur la carte
 async function fetchGroups() {
   try {
     const res  = await fetch(`${API}/groups`, { headers: authHeaders() });
@@ -1004,7 +1008,7 @@ function renderGroups() {
     const field = (label, value) => `
       <div class="group-field">
         <span class="group-field-label">${label}</span>
-        <span class="group-field-value ${value ? '' : 'empty'}">${escapeHtml(value || 'Non renseign√©')}</span>
+        <span class="group-field-value ${value ? '' : 'empty'}">${escapeHtml(value || 'Non renseignÈ')}</span>
       </div>`;
 
     card.innerHTML = `
@@ -1014,24 +1018,24 @@ function renderGroups() {
         </span>
         <div class="group-card-actions">
           <button class="btn-edit"  data-group-edit="${g.id}">Modifier</button>
-          <button class="btn-delete" data-group-del="${g.id}">‚úï</button>
+          <button class="btn-delete" data-group-del="${g.id}">?</button>
         </div>
       </div>
       <div class="group-card-body">
-        ${field(' Lieu de r√©sidence',   g.residence)}
-        ${field(' Territoire contr√¥l√©', g.territory)}
-        ${field(' T√©l√©phone',           g.phone)}
-        ${field(' Business poss√©d√©',    g.business)}
-        ${field(' Entreprise poss√©d√©e', g.company)}
+        ${field(' Lieu de rÈsidence',   g.residence)}
+        ${field(' Territoire contrÙlÈ', g.territory)}
+        ${field(' TÈlÈphone',           g.phone)}
+        ${field(' Business possÈdÈ',    g.business)}
+        ${field(' Entreprise possÈdÈe', g.company)}
       </div>
       ${g.notes ? `
       <div class="group-card-notes">
-        <span class="group-field-label"> Informations compl√©mentaires</span>
+        <span class="group-field-label"> Informations complÈmentaires</span>
         <div class="group-notes-text">${escapeHtml(g.notes)}</div>
       </div>` : ''}
       <div class="group-card-footer">
-        <span>Cr√©√© par ${escapeHtml(g.created_by_name || '‚Äî')}</span>
-        <span>Mis √† jour le ${updatedDate} par ${escapeHtml(g.updated_by_name || '‚Äî')}</span>
+        <span>CrÈÈ par ${escapeHtml(g.created_by_name || 'ó')}</span>
+        <span>Mis ‡ jour le ${updatedDate} par ${escapeHtml(g.updated_by_name || 'ó')}</span>
       </div>
     `;
     grid.appendChild(card);
@@ -1044,7 +1048,7 @@ document.getElementById('btnOpenAddGroup')?.addEventListener('click', () => {
   openGroupModal(null);
 });
 
-// Ouvrir modal en mode √©dition ou supprimer via la grille
+// Ouvrir modal en mode Èdition ou supprimer via la grille
 document.getElementById('groupsGrid')?.addEventListener('click', (e) => {
   const editBtn = e.target.closest('[data-group-edit]');
   const delBtn  = e.target.closest('[data-group-del]');
@@ -1124,7 +1128,7 @@ document.getElementById('btnSaveGroup')?.addEventListener('click', async () => {
     }
     renderGroups();
     closeModal('groupModal');
-    showToast(isEdit ? 'Groupe modifi√©.' : 'Groupe cr√©√©.');
+    showToast(isEdit ? 'Groupe modifiÈ.' : 'Groupe crÈÈ.');
   } catch {
     document.getElementById('groupError').textContent = 'Impossible de contacter le serveur.';
   } finally {
@@ -1154,8 +1158,8 @@ document.getElementById('groupSearch')?.addEventListener('input', (e) => {
   renderGroups();
 });
 
-// ===== R√âSUM√â TABLES =====
-// Cache local des r√©sum√©s (comptes-rendus de r√©union) et terme de recherche.
+// ===== R…SUM… TABLES =====
+// Cache local des rÈsumÈs (comptes-rendus de rÈunion) et terme de recherche.
 let summaries     = [];
 let summarySearch = '';
 
@@ -1166,11 +1170,11 @@ async function fetchSummaries() {
     if (!res.ok) return;
     summaries = data;
     renderSummaries();
-  } catch { console.error('Erreur chargement r√©sum√©s.'); }
+  } catch { console.error('Erreur chargement rÈsumÈs.'); }
 }
 
 // Convertit une date ISO (YYYY-MM-DD ou YYYY-MM-DDTHH:...) en format lisible JJ/MM/AAAA.
-// On tronque √† 10 caract√®res pour ignorer l'heure si elle est pr√©sente.
+// On tronque ‡ 10 caractËres pour ignorer l'heure si elle est prÈsente.
 function formatEventDate(dateStr) {
   if (!dateStr) return '';
   const clean = dateStr.substring(0, 10);
@@ -1224,12 +1228,12 @@ function renderSummaries() {
           ${isOwn ? `
           <div class="timeline-block-actions">
             <button class="btn-edit" data-summary-edit="${s.id}">Modifier</button>
-            <button class="btn-delete" data-summary-del="${s.id}">‚úï</button>
+            <button class="btn-delete" data-summary-del="${s.id}">?</button>
           </div>` : ''}
         </div>
         <div class="timeline-block-content">${escapeHtml(s.content)}</div>
         <div class="timeline-block-footer">
-          <span>Publi√© par <strong>${escapeHtml(s.created_by_name || '‚Äî')}</strong></span>
+          <span>PubliÈ par <strong>${escapeHtml(s.created_by_name || 'ó')}</strong></span>
           <span>Le ${formatPostedDate(s.created_at)}</span>
         </div>
       </div>
@@ -1238,8 +1242,8 @@ function renderSummaries() {
   });
 }
 
-// Pr√©-remplit la date du formulaire de r√©sum√© avec la date du jour (format YYYY-MM-DD)
-// uniquement si le champ est encore vide (√©vite d'√©craser une saisie en cours).
+// PrÈ-remplit la date du formulaire de rÈsumÈ avec la date du jour (format YYYY-MM-DD)
+// uniquement si le champ est encore vide (Èvite d'Ècraser une saisie en cours).
 function initSummaryDate() {
   const input = document.getElementById('summaryDate');
   if (input && !input.value) {
@@ -1247,7 +1251,7 @@ function initSummaryDate() {
   }
 }
 
-// Ajouter un r√©sum√©
+// Ajouter un rÈsumÈ
 document.getElementById('btnAddSummary')?.addEventListener('click', async () => {
   if (!currentUser) return;
 
@@ -1282,7 +1286,7 @@ document.getElementById('btnAddSummary')?.addEventListener('click', async () => 
   } catch {
     errorEl.textContent = 'Impossible de contacter le serveur.';
   } finally {
-    btn.disabled = false; btn.textContent = 'Publier le r√©sum√©';
+    btn.disabled = false; btn.textContent = 'Publier le rÈsumÈ';
   }
 });
 
@@ -1355,14 +1359,14 @@ async function deleteSummary(id) {
   } catch { showToast('Impossible de contacter le serveur.', 'error'); }
 }
 
-// Fermeture modal r√©sum√©
+// Fermeture modal rÈsumÈ
 document.getElementById('summaryModalClose')?.addEventListener('click',  () => closeModal('summaryModal'));
 document.getElementById('summaryModalCancel')?.addEventListener('click', () => closeModal('summaryModal'));
 document.getElementById('summaryModal')?.addEventListener('click', (e) => {
   if (e.target === document.getElementById('summaryModal')) closeModal('summaryModal');
 });
 
-// Recherche r√©sum√©s
+// Recherche rÈsumÈs
 document.getElementById('summarySearch')?.addEventListener('input', (e) => {
   summarySearch = e.target.value.trim();
   renderSummaries();
@@ -1370,12 +1374,12 @@ document.getElementById('summarySearch')?.addEventListener('input', (e) => {
 
 // ===== ADMIN =====
 
-// R√©cup√®re et affiche le code d'inscription du jour dans la section admin.
+// RÈcupËre et affiche le code d'inscription du jour dans la section admin.
 async function fetchAdminInviteCode() {
   const codeEl   = document.getElementById('adminInviteCode');
   const expireEl = document.getElementById('adminInviteExpire');
   if (!codeEl) return;
-  codeEl.textContent = '‚Ä¶';
+  codeEl.textContent = 'Ö';
   try {
     const res  = await fetch(`${API}/admin/register-code`, { headers: authHeaders() });
     const data = await res.json();
@@ -1398,15 +1402,15 @@ document.getElementById('btnRefreshInviteCode')?.addEventListener('click', fetch
 
 document.getElementById('btnCopyInviteCode')?.addEventListener('click', () => {
   const code = document.getElementById('adminInviteCode')?.textContent;
-  if (!code || code === '‚Ä¶' || code === '‚Äî‚Äî‚Äî‚Äî‚Äî‚Äî') return;
-  navigator.clipboard.writeText(code).then(() => showToast('Code copi√© !', 'success'));
+  if (!code || code === 'Ö' || code === 'óóóóóó') return;
+  navigator.clipboard.writeText(code).then(() => showToast('Code copiÈ !', 'success'));
 });
 
 // Cache local des utilisateurs pour la vue admin.
 let adminUsers = [];
 
-// Charge la liste compl√®te des membres depuis l'endpoint admin (acc√®s restreint aux admins).
-// Affiche un √©tat de chargement pendant la requ√™te.
+// Charge la liste complËte des membres depuis l'endpoint admin (accËs restreint aux admins).
+// Affiche un Ètat de chargement pendant la requÍte.
 async function fetchAdminUsers() {
   const tbody = document.getElementById('adminUsersTbody');
   if (!tbody) return;
@@ -1426,7 +1430,7 @@ function renderAdminUsers() {
   const tbody = document.getElementById('adminUsersTbody');
   if (!tbody) return;
   if (adminUsers.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">Aucun membre enregistr√©.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="admin-empty">Aucun membre enregistrÈ.</td></tr>';
     return;
   }
   tbody.innerHTML = adminUsers.map(u => `
@@ -1440,10 +1444,10 @@ function renderAdminUsers() {
       </td>
       <td>${new Date(u.created_at).toLocaleDateString('fr-FR')}</td>
       <td class="admin-actions">
-        <button class="btn-edit" data-reset-id="${u.id}" data-reset-name="${escapeHtml(u.username)}"> R√©initialiser mdp</button>
+        <button class="btn-edit" data-reset-id="${u.id}" data-reset-name="${escapeHtml(u.username)}"> RÈinitialiser mdp</button>
         ${u.id !== currentUser?.id ? `
-          <button class="btn-edit" data-toggle-admin="${u.id}">${u.is_admin ? '‚¨á R√©trograder' : '‚¨Ü Promouvoir'}</button>
-          <button class="btn-delete" data-admin-del="${u.id}">‚úï</button>
+          <button class="btn-edit" data-toggle-admin="${u.id}">${u.is_admin ? '? RÈtrograder' : '? Promouvoir'}</button>
+          <button class="btn-delete" data-admin-del="${u.id}">?</button>
         ` : ''}
       </td>
     </tr>
@@ -1455,7 +1459,7 @@ document.getElementById('adminUsersTbody')?.addEventListener('click', async (e) 
   const resetBtn = e.target.closest('[data-reset-id]');
   if (resetBtn) {
     document.getElementById('resetPwdUserId').value = resetBtn.dataset.resetId;
-    document.getElementById('resetPwdTitle').textContent = `R√©initialiser : ${resetBtn.dataset.resetName}`;
+    document.getElementById('resetPwdTitle').textContent = `RÈinitialiser : ${resetBtn.dataset.resetName}`;
     document.getElementById('resetPwdInput').value = '';
     document.getElementById('resetPwdError').textContent = '';
     openModal('resetPwdModal');
@@ -1475,10 +1479,10 @@ document.getElementById('adminUsersTbody')?.addEventListener('click', async (e) 
   const delBtn = e.target.closest('[data-admin-del]');
   if (delBtn) {
     const userId = delBtn.dataset.adminDel;
-    confirmAction('Supprimer ce membre d√©finitivement ? Cette action est irr√©versible.', async () => {
+    confirmAction('Supprimer ce membre dÈfinitivement ? Cette action est irrÈversible.', async () => {
       try {
         const res = await fetch(`${API}/admin/users/${userId}`, { method: 'DELETE', headers: authHeaders() });
-        if (res.ok) { fetchAdminUsers(); showToast('Membre supprim√©.', 'success'); }
+        if (res.ok) { fetchAdminUsers(); showToast('Membre supprimÈ.', 'success'); }
         else showToast('Erreur lors de la suppression.', 'error');
       } catch { showToast('Impossible de contacter le serveur.', 'error'); }
     });
@@ -1510,11 +1514,11 @@ document.getElementById('resetPwdModal')?.addEventListener('click', (e) => {
 });
 
 // ===== HISTORIQUE DES MODIFICATIONS =====
-// Cache local des entr√©es d'audit et filtre actif par type d'entit√©.
+// Cache local des entrÈes d'audit et filtre actif par type d'entitÈ.
 let auditLogs   = [];
-let logFilter   = 'all';   // 'all' | 'Groupe' | 'Mission' | 'R√©sum√©' | 'Arme' | 'V√©hicule' | 'Transaction'
+let logFilter   = 'all';   // 'all' | 'Groupe' | 'Mission' | 'RÈsumÈ' | 'Arme' | 'VÈhicule' | 'Transaction'
 
-// Charge l'historique complet des modifications effectu√©es par les membres.
+// Charge l'historique complet des modifications effectuÈes par les membres.
 async function fetchLogs() {
   const tbody = document.getElementById('logsTbody');
   if (!tbody) return;
@@ -1535,17 +1539,17 @@ function renderLogs() {
   if (!tbody) return;
   const list = logFilter === 'all' ? auditLogs : auditLogs.filter(l => l.entity_type === logFilter);
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">Aucune entr√©e.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">Aucune entrÈe.</td></tr>';
     return;
   }
   const actionKey = (a) => a.replace(/\s+/g, '-');
   tbody.innerHTML = list.map(l => `
     <tr>
       <td class="td-date">${new Date(l.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' })} ${new Date(l.created_at).toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' })}</td>
-      <td>${escapeHtml(l.user_rp_name || '‚Äî')}</td>
+      <td>${escapeHtml(l.user_rp_name || 'ó')}</td>
       <td><span class="log-action-badge log-action-${escapeHtml(actionKey(l.action))}">${escapeHtml(l.action)}</span></td>
       <td>${escapeHtml(l.entity_type)}</td>
-      <td>${escapeHtml(l.entity_name || '‚Äî')}</td>
+      <td>${escapeHtml(l.entity_name || 'ó')}</td>
       <td style="color:var(--text-2);font-size:.85rem">${escapeHtml(l.details || '')}</td>
     </tr>`).join('');
 }
@@ -1566,30 +1570,30 @@ document.getElementById('btnRefreshLogs')?.addEventListener('click', fetchLogs);
 // Filtre courant : 'entree' (cotisations uniquement) ou 'all' (toutes transactions).
 let cotisationsFilter = 'entree';
 
-// Calcule la cl√© ISO 8601 de la semaine (ex : "2025-W03") √† partir d'une date ISO.
-// Algorithme : trouve le jeudi de la semaine courante (ref ISO), puis en d√©duit le num√©ro.
+// Calcule la clÈ ISO 8601 de la semaine (ex : "2025-W03") ‡ partir d'une date ISO.
+// Algorithme : trouve le jeudi de la semaine courante (ref ISO), puis en dÈduit le numÈro.
 // Cela garantit que le jour 1 de la semaine 1 est toujours un lundi.
 function getISOWeekKey(dateStr) {
   const d    = new Date(dateStr);
   const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
   // getUTCDay() retourne 0 pour dimanche, on le remplace par 7 pour l'ISO (lundi=1, dimanche=7)
   const dayNum = date.getUTCDay() || 7;
-  // Recale la date au jeudi de la m√™me semaine ISO
+  // Recale la date au jeudi de la mÍme semaine ISO
   date.setUTCDate(date.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
   const weekNum   = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
   return `${date.getUTCFullYear()}-W${String(weekNum).padStart(2, '0')}`;
 }
 
-// Transforme la cl√© ISO (ex : "2025-W03") en label lisible (ex : "S03 ¬∑ 2025").
+// Transforme la clÈ ISO (ex : "2025-W03") en label lisible (ex : "S03 ∑ 2025").
 function formatWeekLabel(weekKey) {
   const [year, wPart] = weekKey.split('-W');
-  return `S${wPart} ¬∑ ${year}`;
+  return `S${wPart} ∑ ${year}`;
 }
 
-// Construit un tableau crois√© dynamique (pivot) : lignes = membres, colonnes = 12 derni√®res semaines.
+// Construit un tableau croisÈ dynamique (pivot) : lignes = membres, colonnes = 12 derniËres semaines.
 // Chaque cellule contient la somme des montants pour ce membre cette semaine.
-// Une ligne de totaux par colonne et un grand total g√©n√©ral sont ajout√©s en pied de tableau.
+// Une ligne de totaux par colonne et un grand total gÈnÈral sont ajoutÈs en pied de tableau.
 function renderCotisationsTable() {
   const wrap = document.getElementById('cotisationsTableWrap');
   if (!wrap) return;
@@ -1599,11 +1603,11 @@ function renderCotisationsTable() {
     : transactions;
 
   if (list.length === 0) {
-    wrap.innerHTML = '<p class="admin-empty">Aucune transaction √† afficher.</p>';
+    wrap.innerHTML = '<p class="admin-empty">Aucune transaction ‡ afficher.</p>';
     return;
   }
 
-  // pivot[membre][semaine] = montant cumul√©
+  // pivot[membre][semaine] = montant cumulÈ
   const pivot   = {};
   const weeksSet = new Set();
 
@@ -1633,7 +1637,7 @@ function renderCotisationsTable() {
         const val = pivot[member][wk];
         return val
           ? `<td class="coti-cell coti-has">${formatAmount(val)}</td>`
-          : `<td class="coti-cell coti-empty">‚Äî</td>`;
+          : `<td class="coti-cell coti-empty">ó</td>`;
       }).join('')}
       <td class="coti-cell coti-row-total">${formatAmount(rowTotal)}</td>
     </tr>`;
@@ -1644,7 +1648,7 @@ function renderCotisationsTable() {
     <td class="coti-member"><strong>Total</strong></td>
     ${weeks.map(wk => {
       const wkTotal = members.reduce((sum, m) => sum + (pivot[m][wk] || 0), 0);
-      return `<td class="coti-cell coti-row-total">${wkTotal > 0 ? formatAmount(wkTotal) : '‚Äî'}</td>`;
+      return `<td class="coti-cell coti-row-total">${wkTotal > 0 ? formatAmount(wkTotal) : 'ó'}</td>`;
     }).join('')}
     <td class="coti-cell coti-grand-total">${formatAmount(grandTotal)}</td>
   </tr>`;
@@ -1664,13 +1668,13 @@ document.querySelectorAll('[data-cfilter]').forEach(btn => {
 
 document.getElementById('btnRefreshCotisations')?.addEventListener('click', fetchTransactions);
 
-// ===== GRAPHIQUES COMPTABILIT√â =====
-// Instance Chart.js courante ‚Äî conserv√©e pour pouvoir la d√©truire avant de la recr√©er.
+// ===== GRAPHIQUES COMPTABILIT… =====
+// Instance Chart.js courante ó conservÈe pour pouvoir la dÈtruire avant de la recrÈer.
 let chartBalanceInst = null;
 
 // Calcule le solde cumulatif (running total) transaction par transaction dans l'ordre chronologique,
 // puis affiche une courbe de tendance du solde avec Chart.js.
-// L'instance pr√©c√©dente est d√©truite pour √©viter les doublons de canvas.
+// L'instance prÈcÈdente est dÈtruite pour Èviter les doublons de canvas.
 function renderBalanceChart(txData) {
   const canvas = document.getElementById('chartBalance');
   if (!canvas || !window.Chart) return;
@@ -1705,8 +1709,8 @@ function renderBalanceChart(txData) {
 let missions      = [];
 let missionFilter = 'all';   // 'all' | 'en_cours' | 'termine' | 'echoue'
 
-// Labels d'affichage pour les statuts et priorit√©s (utilis√©s dans les cartes et les selects).
-const MISSION_STATUS_LABELS = { en_cours: ' En cours', termine: ' Termin√©e', echoue: ' √âchou√©e' };
+// Labels d'affichage pour les statuts et prioritÈs (utilisÈs dans les cartes et les selects).
+const MISSION_STATUS_LABELS = { en_cours: ' En cours', termine: ' TerminÈe', echoue: ' …chouÈe' };
 const MISSION_PRIORITY_LABELS = { basse: ' Basse', normale: ' Normale', haute: ' Haute' };
 
 function updateMissionBadge() {
@@ -1733,14 +1737,14 @@ function getFilteredMissions() {
   return missions.filter(m => m.status === missionFilter);
 }
 
-// G√©n√®re les chips de s√©lection des membres assign√©s √† une mission.
+// GÈnËre les chips de sÈlection des membres assignÈs ‡ une mission.
 function buildMissionMembersSelector(selectedIds = []) {
   const container = document.getElementById('missionMembersSelector');
   if (!container) return;
   container.innerHTML = '';
   members.forEach(m => {
     const chip = document.createElement('span');
-    // Les ids sont compar√©s en String car data-mid est une string et selectedIds peut contenir des strings
+    // Les ids sont comparÈs en String car data-mid est une string et selectedIds peut contenir des strings
     chip.className   = 'zone-chip' + (selectedIds.includes(String(m.id)) ? ' selected' : '');
     chip.textContent = m.rp_name;
     chip.dataset.mid = m.id;
@@ -1749,14 +1753,14 @@ function buildMissionMembersSelector(selectedIds = []) {
   });
 }
 
-// Retourne les ids des membres s√©lectionn√©s sous forme de cha√Æne CSV pour l'API.
+// Retourne les ids des membres sÈlectionnÈs sous forme de chaÓne CSV pour l'API.
 function getSelectedMissionMembers() {
   return Array.from(document.querySelectorAll('#missionMembersSelector .zone-chip.selected'))
     .map(c => c.dataset.mid).join(',');
 }
 
-// R√©sout une liste d'ids membres (format CSV) en noms RP lisibles.
-// Si un id n'est pas trouv√© dans le cache local, il est retourn√© tel quel (fallback).
+// RÈsout une liste d'ids membres (format CSV) en noms RP lisibles.
+// Si un id n'est pas trouvÈ dans le cache local, il est retournÈ tel quel (fallback).
 function getMemberNames(ids) {
   if (!ids) return '';
   return ids.split(',').filter(Boolean).map(id => {
@@ -1786,19 +1790,19 @@ function renderMissions() {
           <span class="mission-status-badge status-badge-${m.status}">${MISSION_STATUS_LABELS[m.status]}</span>
           ${currentUser?.id === m.created_by ? `
             <button class="btn-edit" data-mission-edit="${m.id}"></button>
-            <button class="btn-delete" data-mission-del="${m.id}">‚úï</button>
+            <button class="btn-delete" data-mission-del="${m.id}">?</button>
           ` : ''}
         </div>
       </div>
       ${m.description ? `<div class="mission-card-desc">${escapeHtml(m.description)}</div>` : ''}
       ${m.assigned_ids ? `<div class="mission-card-members"> ${escapeHtml(getMemberNames(m.assigned_ids))}</div>` : ''}
       <div class="mission-card-footer">
-        <span>Par ${escapeHtml(m.created_by_name || '‚Äî')}</span>
+        <span>Par ${escapeHtml(m.created_by_name || 'ó')}</span>
         <div class="mission-status-controls">
           <select class="mission-status-select form-input form-select" data-mission-status="${m.id}">
             <option value="en_cours"  ${m.status==='en_cours'  ? 'selected':''}> En cours</option>
-            <option value="termine"   ${m.status==='termine'   ? 'selected':''}> Termin√©e</option>
-            <option value="echoue"    ${m.status==='echoue'    ? 'selected':''}> √âchou√©e</option>
+            <option value="termine"   ${m.status==='termine'   ? 'selected':''}> TerminÈe</option>
+            <option value="echoue"    ${m.status==='echoue'    ? 'selected':''}> …chouÈe</option>
           </select>
         </div>
       </div>`;
@@ -1852,7 +1856,7 @@ document.getElementById('missionsGrid')?.addEventListener('click', async (e) => 
     confirmAction('Supprimer cette mission ?', async () => {
       try {
         const res = await fetch(`${API}/missions/${id}`, { method:'DELETE', headers: authHeaders() });
-        if (res.ok) { missions = missions.filter(m => m.id !== id); renderMissions(); updateMissionBadge(); showToast('Mission supprim√©e.'); }
+        if (res.ok) { missions = missions.filter(m => m.id !== id); renderMissions(); updateMissionBadge(); showToast('Mission supprimÈe.'); }
         else showToast('Erreur lors de la suppression.', 'error');
       } catch { showToast('Impossible de contacter le serveur.', 'error'); }
     });
@@ -1899,7 +1903,7 @@ document.getElementById('btnSaveMission')?.addEventListener('click', async () =>
     renderMissions();
     updateMissionBadge();
     closeModal('missionModal');
-    showToast(isEdit ? 'Mission modifi√©e.' : 'Mission cr√©√©e.');
+    showToast(isEdit ? 'Mission modifiÈe.' : 'Mission crÈÈe.');
   } catch { errorEl.textContent = 'Impossible de contacter le serveur.'; }
   finally { btn.disabled = false; btn.textContent = 'Enregistrer'; }
 });
@@ -1911,7 +1915,7 @@ document.getElementById('missionModal')?.addEventListener('click', (e) => {
 });
 
 // ===== PROFIL MEMBRE =====
-// Charge le profil complet d'un membre depuis l'API (armes, v√©hicules, transactions associ√©s),
+// Charge le profil complet d'un membre depuis l'API (armes, vÈhicules, transactions associÈs),
 // peuple la modale et l'ouvre. Accessible en cliquant sur un membre dans le dashboard ou l'admin.
 async function openMemberProfile(memberId) {
   try {
@@ -1932,17 +1936,17 @@ async function openMemberProfile(memberId) {
 
     document.getElementById('profileWeapons').innerHTML = w.length
       ? w.map(x => `<div class="profile-item"><span>${escapeHtml(x.name)}</span><span class="profile-item-sub">${escapeHtml(x.category)}</span></div>`).join('')
-      : '<p class="dash-empty">Aucune arme attribu√©e.</p>';
+      : '<p class="dash-empty">Aucune arme attribuÈe.</p>';
 
     document.getElementById('profileVehicles').innerHTML = v.length
       ? v.map(x => `<div class="profile-item"><span>${escapeHtml(x.name)}</span><span class="profile-item-sub">${escapeHtml(x.category)}</span></div>`).join('')
-      : '<p class="dash-empty">Aucun v√©hicule attribu√©.</p>';
+      : '<p class="dash-empty">Aucun vÈhicule attribuÈ.</p>';
 
     document.getElementById('profileTx').innerHTML = tx.length
       ? tx.map(t => `
         <div class="profile-item">
           <span class="${t.type === 'entree' ? 'dash-list-badge badge-income' : 'dash-list-badge badge-expense'}">${t.type==='entree'?'+':'-'}${formatAmount(t.amount)}</span>
-          <span>${escapeHtml(t.motif || '‚Äî')}</span>
+          <span>${escapeHtml(t.motif || 'ó')}</span>
           <span class="profile-item-sub">${new Date(t.created_at).toLocaleDateString('fr-FR')}</span>
         </div>`).join('')
       : '<p class="dash-empty">Aucune transaction.</p>';
@@ -1968,7 +1972,7 @@ document.getElementById('adminUsersTbody')?.addEventListener('click', (e) => {
 
 // ===== DATE DISPLAY =====
 // Affiche la date courante dans la topbar au format long (ex : "Samedi 18 avril 2026").
-// La premi√®re lettre est mise en majuscule car toLocaleDateString retourne parfois en minuscule.
+// La premiËre lettre est mise en majuscule car toLocaleDateString retourne parfois en minuscule.
 function updateDate() {
   const now     = new Date();
   const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
@@ -1979,7 +1983,7 @@ function updateDate() {
 
 updateDate();
 
-// ===== PROFIL √âDITABLE =====
+// ===== PROFIL …DITABLE =====
 (function () {
   const overlay    = document.getElementById('profileEditModal');
   const closeBtn   = document.getElementById('profileEditClose');
@@ -2016,7 +2020,7 @@ updateDate();
     const new_password   = newPwdEl.value;
 
     if (!rp_name && !new_password) {
-      errorEl.textContent = 'Aucune modification d√©tect√©e.';
+      errorEl.textContent = 'Aucune modification dÈtectÈe.';
       errorEl.style.display = '';
       return;
     }
@@ -2043,19 +2047,19 @@ updateDate();
         return;
       }
 
-      // Mise √† jour de la session
+      // Mise ‡ jour de la session
       authToken   = data.token;
       currentUser = data.user;
       localStorage.setItem('authToken', authToken);
 
-      // Mise √† jour de l'affichage
+      // Mise ‡ jour de l'affichage
       const rpNameDisplay = document.getElementById('userRpName');
       const avatarEl      = document.getElementById('userAvatar');
       if (rpNameDisplay) rpNameDisplay.textContent = data.user.rp_name;
       if (avatarEl) avatarEl.textContent = data.user.rp_name.split(' ').map(x => x[0]).join('').toUpperCase().slice(0, 2);
 
       closeProfileModal();
-      showToast('Profil mis √† jour.');
+      showToast('Profil mis ‡ jour.');
     } catch {
       errorEl.textContent = 'Impossible de contacter le serveur.';
       errorEl.style.display = '';
@@ -2066,396 +2070,10 @@ updateDate();
   });
 })();
 
-// ===== BIBLE =====
-(function () {
-  let biblePages       = [];
-  let viewLeft         = 0;    // index de la page sur la gauche (toujours pair)
-  let bibleEditId      = null;
-  let isFlipping       = false;
-  let currentMode      = 'text';
-  let pendingImageData = null;
-
-  // DOM ‚Äî livre
-  const coverEl    = document.getElementById('bibleCover');
-  const openBook   = document.getElementById('bibleOpenBook');
-  const navEl      = document.getElementById('bibleNav');
-  const navInfoEl  = document.getElementById('bibleNavInfo');
-  const prevBtn    = document.getElementById('biblePrev');
-  const nextBtn    = document.getElementById('bibleNext');
-  const adminBar   = document.getElementById('bibleAdminBar');
-  const emptyHint  = document.getElementById('bibleEmptyHint');
-  const btnAdd     = document.getElementById('bibleBtnAdd');
-  const btnEdit    = document.getElementById('bibleBtnEdit');
-  const btnDel     = document.getElementById('bibleBtnDel');
-  const flipCard   = document.getElementById('bibleFlipCard');
-  const flipFront  = document.getElementById('bibleFlipFront');
-  const flipBack   = document.getElementById('bibleFlipBack');
-
-  // DOM ‚Äî modal
-  const modal       = document.getElementById('biblePageModal');
-  const modalTitle  = document.getElementById('biblePageModalTitle');
-  const modalClose  = document.getElementById('biblePageModalClose');
-  const modalCancel = document.getElementById('biblePageModalCancel');
-  const saveBtn     = document.getElementById('btnSaveBiblePage');
-  const titleInput  = document.getElementById('bibleEditTitle');
-  const contentTa   = document.getElementById('bibleEditContent');
-  const errorEl     = document.getElementById('biblePageError');
-  const modeTextBtn = document.getElementById('bibleModeText');
-  const modeImgBtn  = document.getElementById('bibleModeImage');
-  const textArea    = document.getElementById('bibleTextArea');
-  const imageArea   = document.getElementById('bibleImageArea');
-  const dropZone    = document.getElementById('bibleDropZone');
-  const fileInput   = document.getElementById('bibleImageInput');
-  const dropContent = document.getElementById('bibleDropContent');
-  const previewWrap = document.getElementById('bibleImagePreview');
-  const previewImg  = document.getElementById('biblePreviewImg');
-  const removeImgBtn = document.getElementById('bibleRemoveImg');
-
-  // ‚îÄ‚îÄ Utilitaires ‚îÄ‚îÄ
-  function isImageContent(s) { return typeof s === 'string' && s.startsWith('data:image'); }
-
-  function pageNum(page) {
-    const idx = biblePages.findIndex(p => p.id === page?.id);
-    return idx >= 0 ? idx + 1 : null;
-  }
-
-  // Peuple un body-element (texte ou image)
-  function setBody(el, page) {
-    if (!el) return;
-    if (!page) { el.innerHTML = ''; return; }
-    if (isImageContent(page.content)) {
-      el.innerHTML = `<img class="bible-page-img" src="${page.content}" alt="${escapeHtml(page.title)}" />`;
-    } else {
-      el.textContent = page.content;
-    }
-  }
-
-  // Peuple une demi-page statique ('left' ou 'right')
-  function setHalf(side, page) {
-    const inner = document.getElementById(side === 'left' ? 'bibleInnerLeft'  : 'bibleInnerRight');
-    const blank = document.getElementById(side === 'left' ? 'bibleBlankLeft'  : 'bibleBlankRight');
-    const numEl = document.getElementById(side === 'left' ? 'bibleNumLeft'    : 'bibleNumRight');
-    const ttlEl = document.getElementById(side === 'left' ? 'bibleTitleLeft'  : 'bibleTitleRight');
-    const bdyEl = document.getElementById(side === 'left' ? 'bibleBodyLeft'   : 'bibleBodyRight');
-
-    if (!page || pageNum(page) === null) {
-      inner.style.display = 'none';
-      blank.style.display = '';
-    } else {
-      numEl.textContent = `Page ${pageNum(page)}`;
-      ttlEl.textContent = page.title;
-      setBody(bdyEl, page);
-      inner.style.display = '';
-      blank.style.display = 'none';
-    }
-  }
-
-  // Peuple une face du flip card
-  function setFlipFace(faceEl, numEl, ttlEl, bdyEl, page) {
-    if (!page) { faceEl.style.opacity = '0'; return; }
-    faceEl.style.opacity = '1';
-    numEl.textContent = `Page ${pageNum(page)}`;
-    ttlEl.textContent = page.title;
-    setBody(bdyEl, page);
-  }
-
-  function updateNav() {
-    const total = biblePages.length;
-    const leftNum  = viewLeft + 1;
-    const rightNum = Math.min(viewLeft + 2, total);
-    navInfoEl.textContent = leftNum === rightNum
-      ? `Page ${leftNum} / ${total}`
-      : `Pages ${leftNum}‚Äì${rightNum} / ${total}`;
-    prevBtn.disabled = viewLeft <= 0;
-    nextBtn.disabled = viewLeft + 2 >= total;
-  }
-
-  function updateAdminBtns() {
-    const isAdmin = !!(currentUser?.is_admin);
-    // Barre enti√®re : visible uniquement pour les admins
-    if (adminBar) adminBar.style.display = isAdmin ? '' : 'none';
-    // Boutons edit/delete : uniquement si des pages existent
-    if (btnEdit) btnEdit.style.display = isAdmin && biblePages.length > 0 ? '' : 'none';
-    if (btnDel)  btnDel.style.display  = isAdmin && biblePages.length > 0 ? '' : 'none';
-  }
-
-  // ‚îÄ‚îÄ Rendu statique (sans animation) ‚îÄ‚îÄ
-  function renderBible() {
-    if (biblePages.length === 0) {
-      coverEl.style.display  = '';
-      openBook.style.display = 'none';
-      navEl.style.display    = 'none';
-      if (emptyHint) emptyHint.style.display = '';
-      updateAdminBtns();
-      return;
-    }
-    // Clamp viewLeft to valid even index
-    viewLeft = Math.max(0, Math.min(viewLeft, biblePages.length - 1));
-    if (viewLeft % 2 !== 0) viewLeft--;
-
-    coverEl.style.display  = 'none';
-    openBook.style.display = '';
-    navEl.style.display    = '';
-
-    setHalf('left',  biblePages[viewLeft]);
-    setHalf('right', biblePages[viewLeft + 1]);
-    updateNav();
-    updateAdminBtns();
-  }
-
-  // ‚îÄ‚îÄ Animation flip livre ‚îÄ‚îÄ
-  function flipPage(dir) {
-    if (isFlipping) return;
-    const nextLeft = dir === 'forward' ? viewLeft + 2 : viewLeft - 2;
-    if (nextLeft < 0 || nextLeft > biblePages.length - 1) return;
-
-    isFlipping = true;
-
-    const frontPage = dir === 'forward' ? biblePages[viewLeft + 1] : biblePages[viewLeft];
-    const backPage  = dir === 'forward' ? biblePages[nextLeft]     : biblePages[nextLeft + 1];
-
-    // Contenu des faces
-    setFlipFace(flipFront,
-      document.getElementById('bibleFlipNumF'), document.getElementById('bibleFlipTitleF'),
-      document.getElementById('bibleFlipBodyF'), frontPage);
-    setFlipFace(flipBack,
-      document.getElementById('bibleFlipNumB'), document.getElementById('bibleFlipTitleB'),
-      document.getElementById('bibleFlipBodyB'), backPage);
-
-    // Face arri√®re : orientation selon la direction
-    flipBack.style.transform = dir === 'forward' ? 'rotateY(180deg)' : 'rotateY(-180deg)';
-
-    // Positionnement (origin de rotation = c√¥t√© reliure)
-    flipCard.classList.remove('flip-from-right', 'flip-from-left');
-    flipCard.classList.add(dir === 'forward' ? 'flip-from-right' : 'flip-from-left');
-
-    // √âtat initial : pas de transition, angle de d√©part 0¬∞
-    flipCard.style.transition = 'none';
-    flipCard.style.transform  = 'rotateY(0deg)';
-    flipCard.style.display    = '';
-
-    // Page statique "en dessous" pr√™te avant l'animation
-    if (dir === 'forward') setHalf('right', biblePages[nextLeft + 1]);
-    else                   setHalf('left',  biblePages[nextLeft]);
-
-    // Force le navigateur √† calculer le layout AVANT de d√©marrer la transition
-    void flipCard.offsetWidth;
-
-    // D√©marre la transition
-    flipCard.style.transition = 'transform 0.7s cubic-bezier(0.645, 0.045, 0.355, 1.000)';
-    flipCard.style.transform  = dir === 'forward' ? 'rotateY(-180deg)' : 'rotateY(180deg)';
-
-    flipCard.addEventListener('transitionend', () => {
-      // Nettoyage
-      flipCard.style.transition = 'none';
-      flipCard.style.transform  = '';
-      flipCard.style.display    = 'none';
-      flipCard.classList.remove('flip-from-right', 'flip-from-left');
-
-      viewLeft = nextLeft;
-      setHalf('left',  biblePages[viewLeft]);
-      setHalf('right', biblePages[viewLeft + 1]);
-      updateNav();
-      updateAdminBtns();
-      isFlipping = false;
-    }, { once: true });
-  }
-
-  // ‚îÄ‚îÄ Fetch ‚îÄ‚îÄ
-  async function fetchBible() {
-    try {
-      const res  = await fetch(`${API}/bible`, { headers: authHeaders() });
-      const data = await res.json();
-      if (!res.ok) return;
-      biblePages = data;
-      renderBible();
-    } catch { console.error('Erreur chargement Bible.'); }
-  }
-
-  // Navigation
-  prevBtn?.addEventListener('click', () => flipPage('backward'));
-  nextBtn?.addEventListener('click', () => flipPage('forward'));
-
-  document.addEventListener('keydown', (e) => {
-    const sec = document.getElementById('section-bible');
-    if (!sec?.classList.contains('active') || document.getElementById('biblePageModal')?.classList.contains('open')) return;
-    if (e.key === 'ArrowRight') flipPage('forward');
-    if (e.key === 'ArrowLeft')  flipPage('backward');
-  });
-
-  // Admin ‚Äì Edit / Delete op√®rent sur la page droite en priorit√©, sinon gauche
-  function currentEditPage() {
-    return biblePages[viewLeft + 1] || biblePages[viewLeft] || null;
-  }
-
-  btnDel?.addEventListener('click', () => {
-    const page = currentEditPage();
-    if (!page) return;
-    confirmAction('Supprimer cette page de la Bible ?', async () => {
-      try {
-        const res = await fetch(`${API}/bible/${page.id}`, { method: 'DELETE', headers: authHeaders() });
-        if (res.ok) {
-          biblePages.splice(biblePages.findIndex(p => p.id === page.id), 1);
-          if (viewLeft >= biblePages.length) viewLeft = Math.max(0, biblePages.length - 2);
-          if (viewLeft % 2 !== 0) viewLeft--;
-          renderBible();
-          showToast('Page supprim√©e.');
-        } else { showToast('Erreur lors de la suppression.', 'error'); }
-      } catch { showToast('Impossible de contacter le serveur.', 'error'); }
-    });
-  });
-
-  // ‚îÄ‚îÄ Switch mode texte / image dans la modal ‚îÄ‚îÄ
-  function switchMode(mode) {
-    currentMode = mode;
-    if (mode === 'text') {
-      modeTextBtn?.classList.add('active');
-      modeImgBtn?.classList.remove('active');
-      if (textArea)  textArea.style.display  = '';
-      if (imageArea) imageArea.style.display = 'none';
-    } else {
-      modeImgBtn?.classList.add('active');
-      modeTextBtn?.classList.remove('active');
-      if (textArea)  textArea.style.display  = 'none';
-      if (imageArea) imageArea.style.display = '';
-    }
-  }
-
-  modeTextBtn?.addEventListener('click', () => switchMode('text'));
-  modeImgBtn?.addEventListener('click',  () => switchMode('image'));
-
-  // ‚îÄ‚îÄ Gestion upload / drag-drop ‚îÄ‚îÄ
-  function loadImageFile(file) {
-    if (!file || !file.type.startsWith('image/')) {
-      showToast('Fichier non support√©. Utilisez PNG, JPG ou WEBP.', 'error');
-      return;
-    }
-    if (file.size > 30 * 1024 * 1024) {
-      showToast('Image trop lourde (max 30 Mo).', 'error');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      pendingImageData          = e.target.result;
-      previewImg.src            = pendingImageData;
-      previewWrap.style.display = '';
-      dropContent.style.display = 'none';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  dropZone?.addEventListener('click', (e) => {
-    if (!e.target.closest('.bible-preview-remove')) fileInput?.click();
-  });
-  fileInput?.addEventListener('change', () => {
-    if (fileInput.files[0]) loadImageFile(fileInput.files[0]);
-  });
-  dropZone?.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-  dropZone?.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-  dropZone?.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (file) loadImageFile(file);
-  });
-
-  removeImgBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    pendingImageData           = null;
-    previewImg.src             = '';
-    previewWrap.style.display  = 'none';
-    dropContent.style.display  = '';
-    if (fileInput) fileInput.value = '';
-  });
-
-  // ‚îÄ‚îÄ Ouvrir la modal ‚îÄ‚îÄ
-  function openBibleModal(editPage = null) {
-    bibleEditId      = editPage ? editPage.id : null;
-    pendingImageData = null;
-    modalTitle.textContent = editPage ? 'Modifier la page' : 'Nouvelle page';
-    titleInput.value       = editPage ? editPage.title : '';
-    errorEl.style.display  = 'none';
-
-    // Pr√©-remplissage selon le type de contenu existant
-    if (editPage && isImageContent(editPage.content)) {
-      contentTa.value           = '';
-      pendingImageData          = editPage.content;
-      previewImg.src            = editPage.content;
-      previewWrap.style.display = '';
-      dropContent.style.display = 'none';
-      switchMode('image');
-    } else {
-      contentTa.value           = editPage ? editPage.content : '';
-      previewImg.src            = '';
-      previewWrap.style.display = 'none';
-      dropContent.style.display = '';
-      if (fileInput) fileInput.value = '';
-      switchMode('text');
-    }
-
-    modal.classList.add('open');
-    setTimeout(() => titleInput.focus(), 80);
-  }
-
-  function closeBibleModal() {
-    modal.classList.remove('open');
-    pendingImageData = null;
-  }
-
-  btnAdd?.addEventListener('click', () => openBibleModal(null));
-  btnEdit?.addEventListener('click', () => openBibleModal(currentEditPage()));
-  modalClose?.addEventListener('click', closeBibleModal);
-  modalCancel?.addEventListener('click', closeBibleModal);
-  modal?.addEventListener('click', (e) => { if (e.target === modal) closeBibleModal(); });
-
-  // ‚îÄ‚îÄ Sauvegarder ‚îÄ‚îÄ
-  saveBtn?.addEventListener('click', async () => {
-    if (!currentUser?.is_admin) { closeBibleModal(); return; }
-    const title = titleInput.value.trim();
-    if (!title) { errorEl.textContent = 'Titre requis.'; errorEl.style.display = ''; return; }
-
-    let content = '';
-    if (currentMode === 'image') {
-      if (!pendingImageData) { errorEl.textContent = 'Veuillez s√©lectionner une image.'; errorEl.style.display = ''; return; }
-      content = pendingImageData;
-    } else {
-      content = contentTa.value;
-    }
-
-    saveBtn.disabled = true; saveBtn.textContent = 'Enregistrement...';
-    errorEl.style.display = 'none';
-
-    try {
-      const url    = bibleEditId ? `${API}/bible/${bibleEditId}` : `${API}/bible`;
-      const method = bibleEditId ? 'PUT' : 'POST';
-      const res    = await fetch(url, { method, headers: authHeaders(), body: JSON.stringify({ title, content }) });
-      const data   = await res.json();
-      if (!res.ok) { errorEl.textContent = data.error || 'Erreur.'; errorEl.style.display = ''; return; }
-
-      if (bibleEditId) {
-        const idx = biblePages.findIndex(p => p.id === bibleEditId);
-        if (idx !== -1) biblePages[idx] = data;
-      } else {
-        biblePages.push(data);
-        // positionner sur la nouvelle page
-        const newIdx = biblePages.length - 1;
-        viewLeft = newIdx % 2 === 0 ? newIdx : newIdx - 1;
-      }
-      renderBible();
-      closeBibleModal();
-      showToast(bibleEditId ? 'Page modifi√©e.' : 'Page ajout√©e.');
-    } catch { errorEl.textContent = 'Impossible de contacter le serveur.'; errorEl.style.display = ''; }
-    finally { saveBtn.disabled = false; saveBtn.textContent = 'Enregistrer'; }
-  });
-
-  window._fetchBible = fetchBible;
-  window._initBibleAdminBar = updateAdminBtns;
-})();
-
 // ===== ADMIN COLLAPSIBLE SECTIONS =====
-// Rend les en-t√™tes des cartes admin cliquables pour r√©duire/agrandir leur contenu.
-// Les clics sur le bouton "Actualiser" (btn-refresh) sont ignor√©s pour ne pas d√©clencher
-// le toggle en m√™me temps qu'un rechargement des donn√©es.
+// Rend les en-tÍtes des cartes admin cliquables pour rÈduire/agrandir leur contenu.
+// Les clics sur le bouton "Actualiser" (btn-refresh) sont ignorÈs pour ne pas dÈclencher
+// le toggle en mÍme temps qu'un rechargement des donnÈes.
 document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
   header.addEventListener('click', (e) => {
     if (e.target.closest('.btn-refresh')) return;
@@ -2464,8 +2082,8 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
     const btn = header.querySelector('.btn-collapse-toggle');
     if (!body || !btn) return;
     const isCollapsed = body.classList.toggle('collapsed');
-    // Adapte l'ic√¥ne du bouton selon l'√©tat (+ = r√©duit, ‚àí = ouvert).
-    btn.textContent = isCollapsed ? '+' : '‚àí';
+    // Adapte l'icÙne du bouton selon l'Ètat (+ = rÈduit, - = ouvert).
+    btn.textContent = isCollapsed ? '+' : '-';
   });
 });
 
@@ -2577,8 +2195,8 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
           <div class="tenant-card-slug">Code : <strong>${t.slug}</strong></div>
         </div>
         <div class="tenant-card-actions">
-          <button class="btn-switch-tenant" data-id="${t.id}" title="Acc√©der √† ce groupe" ${isActive ? 'disabled' : ''}>Acc√©der</button>
-          <button class="btn-edit-tenant" data-id="${t.id}" title="Modifier">‚úè</button>
+          <button class="btn-switch-tenant" data-id="${t.id}" title="AccÈder ‡ ce groupe" ${isActive ? 'disabled' : ''}>AccÈder</button>
+          <button class="btn-edit-tenant" data-id="${t.id}" title="Modifier">?</button>
         </div>
       `;
       grid.appendChild(card);
@@ -2608,7 +2226,7 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
     slugInput.disabled = false;
     modalTitle.textContent = 'Nouveau groupe';
     errorEl.style.display  = 'none';
-    openModal('tenantModal');
+    openTenantModal();
   }
 
   async function openModal_edit(id) {
@@ -2645,8 +2263,8 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
       btnDelete.style.display = '';
       modalTitle.textContent  = `Modifier : ${full.name}`;
       errorEl.style.display   = 'none';
-      openModal('tenantModal');
-    } catch {}
+      openTenantModal();
+    } catch (e) { console.error('Edit tenant error:', e); showToast('Erreur chargement du groupe.', 'error'); }
   }
 
   // Client-side daily code preview (mirrors backend logic)
@@ -2666,13 +2284,16 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
   }
 
   btnCopyCode?.addEventListener('click', () => {
-    navigator.clipboard.writeText(inviteCodeEl.textContent).then(() => showToast('Code copi√© !'));
+    navigator.clipboard.writeText(inviteCodeEl.textContent).then(() => showToast('Code copiÈ !'));
   });
 
+  function openTenantModal()  { document.getElementById('tenantModal')?.classList.add('open'); }
+  function closeTenantModal() { document.getElementById('tenantModal')?.classList.remove('open'); }
+
   function closeModal_tenant() {
-    closeModal('tenantModal');
+    closeTenantModal();
     pendingLogoData = null;
-    logoInput.value = '';
+    if (logoInput) logoInput.value = '';
   }
 
   btnCreate?.addEventListener('click', openModal_create);
@@ -2712,7 +2333,7 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
       data = await res.json();
       if (!res.ok) { errorEl.textContent = data.error || 'Erreur.'; errorEl.style.display = ''; return; }
 
-      showToast(id ? 'Groupe mis √† jour.' : 'Groupe cr√©√©.');
+      showToast(id ? 'Groupe mis ‡ jour.' : 'Groupe crÈÈ.');
       closeModal_tenant();
       await fetchTenants();
     } catch {
@@ -2726,18 +2347,18 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
     const id   = editIdInput.value;
     const name = nameInput.value;
     if (!id) return;
-    confirmAction(`Supprimer le groupe "${name}" ? Toutes ses donn√©es seront perdues.`, async () => {
+    confirmAction(`Supprimer le groupe "${name}" ? Toutes ses donnÈes seront perdues.`, async () => {
       try {
         const res = await fetch(`${API}/tenants/${id}`, { method: 'DELETE', headers: authHeaders() });
         if (res.ok) {
-          showToast('Groupe supprim√©.');
+          showToast('Groupe supprimÈ.');
           closeModal_tenant();
           fetchTenants();
         } else {
           const d = await res.json();
           showToast(d.error || 'Erreur.', 'error');
         }
-      } catch { showToast('Erreur r√©seau.', 'error'); }
+      } catch { showToast('Erreur rÈseau.', 'error'); }
     }, 'Supprimer');
   });
 
@@ -2751,7 +2372,7 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
       const data = await res.json();
       if (!res.ok) { showToast(data.error || 'Erreur lors du changement de groupe.', 'error'); return; }
 
-      // Met √† jour la session avec le nouveau tenant
+      // Met ‡ jour la session avec le nouveau tenant
       currentUser   = data.user;
       authToken     = data.token;
       currentTenant = data.tenant;
@@ -2764,11 +2385,11 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
 
       showToast(`Groupe actif : ${data.tenant.name}`);
 
-      // Retour √† l'accueil avec donn√©es fra√Æches du nouveau groupe
+      // Retour ‡ l'accueil avec donnÈes fraÓches du nouveau groupe
       switchSection('comptabilite');
     } catch (e) {
       console.error('Switch tenant error:', e);
-      showToast('Erreur r√©seau lors du changement de groupe.', 'error');
+      showToast('Erreur rÈseau lors du changement de groupe.', 'error');
     }
   }
 

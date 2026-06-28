@@ -1,4 +1,4 @@
-﻿/* ===== RESET & BASE ===== */
+/* ===== RESET & BASE ===== */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -32,7 +32,7 @@
   --transition:    0.2s ease;
 }
 
-/* Surface 2 alias pour compatibilité */
+/* Surface 2 alias pour compatibilit? */
 :root { --surface-2: #111111; }
 
 html, body {
@@ -668,7 +668,7 @@ body {
   color: #e05c5c;
 }
 
-/* ===== COMPTABILITÉ — STATS ===== */
+/* ===== COMPTABILIT? ? STATS ===== */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -726,7 +726,7 @@ body {
 .stat-count    { border-top: 3px solid #666666; }
 .stat-count .stat-value   { color: #666666; }
 
-/* ===== COMPTABILITÉ — FORMULAIRE ===== */
+/* ===== COMPTABILIT? ? FORMULAIRE ===== */
 .form-card {
   background: linear-gradient(160deg, #111111 0%, #0a0a0a 100%);
   border: 1px solid var(--border);
@@ -901,7 +901,7 @@ body {
   box-shadow: 0 1px 8px rgba(255,255,255,0.18);
 }
 
-/* ===== COMPTABILITÉ — TABLEAU ===== */
+/* ===== COMPTABILIT? ? TABLEAU ===== */
 .transactions-card {
   background: linear-gradient(160deg, #111111 0%, #0a0a0a 100%);
   border: 1px solid var(--border);
@@ -1081,14 +1081,14 @@ body {
 }
 .sidebar-overlay.visible { display: block; }
 
-/* --- Grand tablet (≤1200px) --- */
+/* --- Grand tablet (=1200px) --- */
 @media (max-width: 1200px) {
   .stats-grid { grid-template-columns: repeat(3, 1fr); }
   .form-grid  { grid-template-columns: 1fr 1fr; }
   .form-group-full { grid-column: 1 / -1; }
 }
 
-/* --- Tablet (≤900px) --- */
+/* --- Tablet (=900px) --- */
 @media (max-width: 900px) {
   .stats-grid  { grid-template-columns: repeat(2, 1fr); }
   .form-grid   { grid-template-columns: 1fr; }
@@ -1099,7 +1099,7 @@ body {
   .profile-full { grid-column: 1; }
 }
 
-/* --- Mobile (≤768px) --- */
+/* --- Mobile (=768px) --- */
 @media (max-width: 768px) {
   /* Sidebar */
   .sidebar {
@@ -1149,7 +1149,7 @@ body {
   }
   .groups-toolbar .btn-submit { width: 100%; text-align: center; }
 
-  /* Grids → 1 colonne */
+  /* Grids ? 1 colonne */
   .groups-grid,
   .weapons-grid,
   .missions-grid { grid-template-columns: 1fr !important; }
@@ -1198,7 +1198,7 @@ body {
   .toast { max-width: 100%; }
 }
 
-/* --- Petit mobile (≤480px) --- */
+/* --- Petit mobile (=480px) --- */
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: 1fr; }
   .content    { padding: 12px 10px; }
@@ -1234,7 +1234,7 @@ body {
   .profile-avatar { width: 44px; height: 44px; font-size: 16px; }
 }
 
-/* --- Très petit mobile (≤360px) --- */
+/* --- Tr?s petit mobile (=360px) --- */
 @media (max-width: 360px) {
   .stats-grid { grid-template-columns: 1fr; }
   .user-chip  { display: none; }
@@ -1690,7 +1690,7 @@ body {
   gap: 16px;
 }
 
-/* ===== RÉSUMÉ TABLES — TIMELINE ===== */
+/* ===== R?SUM? TABLES ? TIMELINE ===== */
 .timeline-header {
   display: flex;
   align-items: center;
@@ -1806,7 +1806,7 @@ body {
   gap: 4px;
 }
 
-/* Grille du formulaire résumé */
+/* Grille du formulaire r?sum? */
 .summary-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2064,14 +2064,14 @@ body {
   text-transform: uppercase;
   letter-spacing: .04em;
 }
-.log-action-créé      { background: rgba(255,255,255,0.08); color: #ffffff; }
-.log-action-publié    { background: rgba(255,255,255,0.08); color: #ffffff; }
-.log-action-ajouté    { background: rgba(255,255,255,0.08); color: #ffffff; }
-.log-action-modifié   { background: rgba(100,150,255,.15); color: #7090ee; }
-.log-action-attribué  { background: rgba(255,180,60,.15);  color: #e0a020; }
+.log-action-cr??      { background: rgba(255,255,255,0.08); color: #ffffff; }
+.log-action-publi?    { background: rgba(255,255,255,0.08); color: #ffffff; }
+.log-action-ajout?    { background: rgba(255,255,255,0.08); color: #ffffff; }
+.log-action-modifi?   { background: rgba(100,150,255,.15); color: #7090ee; }
+.log-action-attribu?  { background: rgba(255,180,60,.15);  color: #e0a020; }
 .log-action-statut    { background: rgba(255,180,60,.15);  color: #e0a020; }
-.log-action-supprimé  { background: rgba(220,60,60,.15);   color: #e05c5c; }
-.log-action-Entrée    { background: rgba(255,255,255,0.08);  color: #ffffff; }
+.log-action-supprim?  { background: rgba(220,60,60,.15);   color: #e05c5c; }
+.log-action-Entr?e    { background: rgba(255,255,255,0.08);  color: #ffffff; }
 .log-action-Sortie    { background: rgba(220,60,60,.15);   color: #e05c5c; }
 
 /* ===== COTISATIONS TABLE ===== */
@@ -2145,7 +2145,7 @@ body {
   font-weight: 600;
 }
 
-/* ===== TERRITOIRES — CARTE ===== */
+/* ===== TERRITOIRES ? CARTE ===== */
 .map-toolbar {
   display: flex;
   align-items: center;
@@ -2225,7 +2225,7 @@ body {
 
 .map-editor-active { cursor: crosshair !important; }
 
-/* Légende carte */
+/* L?gende carte */
 .map-legend {
   position: absolute;
   bottom: 30px;
@@ -2819,389 +2819,6 @@ body {
   margin: 0 0 12px;
 }
 
-/* ===== NAV SEPARATOR (Bible) ===== */
-.nav-separator {
-  height: 1px;
-  background: var(--border);
-  margin: 10px 16px;
-  list-style: none;
-}
-.nav-item-bible {
-  color: var(--text-secondary);
-  font-style: italic;
-}
-.nav-item-bible.active,
-.nav-item-bible:hover {
-  color: var(--accent);
-}
-
-.nav-item-gestion {
-  color: var(--accent);
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-.nav-item-gestion.active,
-.nav-item-gestion:hover {
-  color: var(--accent);
-  background: rgba(255,255,255,0.08);
-}
-
-/* ===== BIBLE SECTION ===== */
-.bible-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-  padding: 20px 0 40px;
-}
-
-/* Couverture (état vide) */
-.bible-cover {
-  width: 100%;
-  max-width: 900px;
-  min-height: 520px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 50%, #0d0d0d 100%);
-  border-radius: 4px 12px 12px 4px;
-  box-shadow: -6px 0 0 #1a1a1a, -10px 0 0 #111, 0 20px 60px rgba(0,0,0,0.7);
-}
-.bible-cover-inner { text-align: center; padding: 40px; }
-.bible-cover-logo  { width: 80px; height: 80px; object-fit: contain; opacity: 0.7; margin-bottom: 20px; }
-.bible-cover-title { font-size: 32px; font-weight: 900; letter-spacing: 0.3em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; }
-.bible-cover-subtitle { font-size: 13px; letter-spacing: 0.2em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 24px; }
-.bible-empty-hint  { font-size: 13px; color: var(--text-muted); margin: 0; }
-
-/* ── Livre ouvert (deux pages) ── */
-.bible-open-book {
-  position: relative;
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-  max-width: 900px;
-  perspective: 3000px;
-  box-shadow: -8px 0 0 #1a1a1a, -14px 0 0 #111, 0 24px 70px rgba(0,0,0,0.8);
-  border-radius: 4px 8px 8px 4px;
-}
-
-/* Demi-pages */
-.bible-half {
-  flex: 1;
-  min-height: 120px;
-  padding: 0;
-  position: relative;
-  overflow: hidden;
-  background: #0f0f0f;
-}
-.bible-half-left {
-  border-radius: 4px 0 0 4px;
-  box-shadow: inset -12px 0 24px rgba(0,0,0,0.55), inset -2px 0 6px rgba(0,0,0,0.8);
-}
-.bible-half-right {
-  border-radius: 0 8px 8px 0;
-  box-shadow: inset 12px 0 24px rgba(0,0,0,0.55), inset 2px 0 6px rgba(0,0,0,0.8);
-}
-
-/* Reliure centrale */
-.bible-book-spine {
-  width: 18px;
-  flex-shrink: 0;
-  background: linear-gradient(to right, #050505 0%, #1c1c1c 35%, #111 50%, #1c1c1c 65%, #050505 100%);
-  box-shadow: 0 0 14px rgba(0,0,0,0.9);
-  position: relative;
-  z-index: 3;
-}
-
-/* Contenu d'une demi-page */
-.bible-pg-inner {
-  display: flex;
-  flex-direction: column;
-}
-.bible-blank-half {
-  position: absolute;
-  inset: 0;
-  background: #0d0d0d;
-  background-image: repeating-linear-gradient(
-    0deg, transparent, transparent 28px, rgba(255,255,255,0.015) 28px, rgba(255,255,255,0.015) 29px
-  );
-}
-/* Titres masqués — on garde uniquement l'image */
-.bible-pg-num-bar { display: none; }
-.bible-pg-num, .bible-pg-title-sm { display: none; }
-
-.bible-pg-body {
-  font-size: 13px;
-  line-height: 1.85;
-  color: var(--text-primary);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-/* Image : pleine demi-page, hauteur naturelle */
-.bible-pg-body img.bible-page-img {
-  width: 100%;
-  height: auto;
-  max-height: none;
-  display: block;
-  vertical-align: top;
-}
-
-/* ── Carte flip (absolue, animée) ── */
-.bible-flip-card {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  /* largeur = une demi-page, sans la reliure */
-  width: calc(50% - 9px);
-  transform-style: preserve-3d;
-  z-index: 10;
-}
-
-/* Positionnée sur la page droite (flip avant) */
-.bible-flip-card.flip-from-right {
-  right: 0;
-  transform-origin: left center;
-}
-/* Positionnée sur la page gauche (flip arrière) */
-.bible-flip-card.flip-from-left {
-  left: 0;
-  transform-origin: right center;
-}
-
-/* La transition est gérée en JS via style.transition inline */
-
-/* Faces de la carte flip */
-.bible-flip-face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  background: #0f0f0f;
-  padding: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-/* Ombre sur le bord pendant le flip pour simuler la courbure de la page */
-.bible-flip-face::after {
-  content: '';
-  position: absolute;
-  top: 0; bottom: 0; right: 0;
-  width: 40%;
-  background: linear-gradient(to left, rgba(0,0,0,0.55) 0%, transparent 100%);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.1s;
-}
-.bible-flip-card.flip-animating .bible-flip-face:not(.face-b)::after { opacity: 1; }
-
-/* Face arrière (transform défini en JS selon la direction) */
-.bible-flip-face.face-b { /* transform set by JS */ }
-
-@media (max-width: 700px) {
-  .bible-open-book { flex-direction: column; min-height: auto; }
-  .bible-half { min-height: 320px; padding: 20px 18px; }
-  .bible-half-left  { border-radius: 4px 4px 0 0; box-shadow: inset 0 -8px 20px rgba(0,0,0,0.4); }
-  .bible-half-right { border-radius: 0 0 4px 4px; box-shadow: inset 0 8px 20px rgba(0,0,0,0.4); }
-  .bible-book-spine { width: 100%; height: 14px; background: linear-gradient(to bottom, #050505, #1c1c1c, #050505); }
-  .bible-flip-card  { display: none !important; }
-}
-
-/* Navigation du livre */
-.bible-nav {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.bible-btn-prev,
-.bible-btn-next {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  color: var(--text-secondary);
-  font-size: 18px;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background var(--transition), color var(--transition), border-color var(--transition);
-  user-select: none;
-}
-.bible-btn-prev:hover:not([disabled]),
-.bible-btn-next:hover:not([disabled]) {
-  background: var(--accent-dim);
-  color: var(--accent);
-  border-color: var(--accent);
-}
-.bible-btn-prev[disabled],
-.bible-btn-next[disabled] { opacity: 0.3; cursor: default; }
-.bible-nav-info {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-  min-width: 50px;
-  text-align: center;
-  letter-spacing: 0.05em;
-}
-
-/* Barre admin Bible */
-.bible-admin-bar {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.bible-btn-add { font-size: 13px; padding: 8px 18px; }
-.bible-btn-edit { font-size: 13px; padding: 8px 18px; }
-.bible-btn-del {
-  font-size: 13px;
-  padding: 8px 14px;
-  background: transparent;
-  border: 1px solid #e05c5c;
-  color: #e05c5c;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: background var(--transition);
-}
-.bible-btn-del:hover { background: rgba(224,92,92,0.1); }
-
-/* Textarea Bible */
-.bible-textarea {
-  font-family: inherit;
-  resize: vertical;
-  min-height: 300px;
-  line-height: 1.7;
-}
-
-/* Image pleine page dans le livre — tient dans l'écran sans scroll */
-.bible-page-img {
-  width: 100%;
-  max-width: 100%;
-  max-height: calc(100vh - 280px);
-  height: auto;
-  display: block;
-  border-radius: 4px;
-  object-fit: contain;
-  object-position: top;
-}
-.bible-page:has(.bible-page-img) {
-  padding-bottom: 24px;
-}
-.bible-page:has(.bible-page-img) .bible-page-header {
-  margin-bottom: 12px;
-}
-
-/* Toggle mode texte / image */
-.bible-mode-toggle {
-  display: flex;
-  gap: 0;
-  margin-bottom: 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-.bible-mode-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 500;
-  padding: 8px 0;
-  cursor: pointer;
-  transition: background var(--transition), color var(--transition);
-}
-.bible-mode-btn.active {
-  background: var(--accent);
-  color: #000;
-  font-weight: 700;
-}
-.bible-mode-btn:not(.active):hover {
-  background: var(--accent-dim);
-  color: var(--text-primary);
-}
-
-/* Drop zone */
-.bible-drop-zone {
-  border: 2px dashed var(--border-light);
-  border-radius: var(--radius);
-  background: var(--bg-card);
-  min-height: 180px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: border-color var(--transition), background var(--transition);
-  position: relative;
-  overflow: hidden;
-}
-.bible-drop-zone:hover,
-.bible-drop-zone.drag-over {
-  border-color: var(--accent);
-  background: var(--accent-dim);
-}
-.bible-drop-content {
-  text-align: center;
-  padding: 24px;
-  pointer-events: none;
-}
-.bible-drop-icon {
-  font-size: 36px;
-  font-weight: 300;
-  color: var(--text-muted);
-  line-height: 1;
-  margin-bottom: 10px;
-}
-.bible-drop-content p {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin: 0 0 4px;
-}
-.bible-drop-link {
-  color: var(--accent);
-  font-weight: 500;
-}
-.bible-drop-hint {
-  font-size: 11px !important;
-  color: var(--text-muted) !important;
-}
-.bible-image-preview {
-  width: 100%;
-  position: relative;
-}
-.bible-image-preview img {
-  width: 100%;
-  max-height: 340px;
-  object-fit: contain;
-  display: block;
-}
-.bible-preview-remove {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0,0,0,0.7);
-  border: 1px solid var(--border);
-  color: #fff;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  font-size: 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--transition);
-}
-.bible-preview-remove:hover { background: #e05c5c; }
-
-@media (max-width: 600px) {
-  .bible-book { border-radius: 4px 8px 8px 4px; box-shadow: -4px 0 0 #111, 0 8px 30px rgba(0,0,0,0.6); }
-  .bible-page { padding: 24px 20px; }
-  .bible-page-title-display { font-size: 16px; }
-}
-
 /* ===== SECTION GESTION (SUPER-ADMIN) ===== */
 .gestion-toolbar {
   display: flex;
@@ -3326,4 +2943,76 @@ body {
   max-width: 540px;
   width: 95%;
 }
+
+/* ===== UPLOAD ZONE (logo tenant) ===== */
+.bible-drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+}
+.bible-drop-zone:hover,
+.bible-drop-zone.drag-over {
+  border-color: var(--accent);
+  background: rgba(255,255,255,0.03);
+}
+.bible-drop-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+.bible-drop-icon {
+  font-size: 28px;
+  color: var(--text-muted);
+  line-height: 1;
+}
+.bible-drop-content p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+.bible-drop-link {
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.bible-drop-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.bible-image-preview {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+.bible-image-preview img {
+  max-width: 100%;
+  max-height: 120px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+.bible-preview-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #e05c5c;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.bible-preview-remove:hover { background: #c04040; }
 
