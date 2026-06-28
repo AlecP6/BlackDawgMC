@@ -2,7 +2,7 @@
 <html lang="fr"><head>
  <meta charset="UTF-8" />
  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
- <title>Mamba Cult MC — Gestion RP</title>
+ <title>Gestion RP</title>
   <link rel="icon" id="faviconLink" type="image/png" href="" />
  <link rel="stylesheet" href="style.css" />
  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -12,7 +12,7 @@
 <body>
 
  <!-- ===== LOADING SCREEN ===== -->
- <div id="loadingScreen" class="loading-screen"><div class="loading-inner"><div class="loading-logo">MAMBA CULT MC</div>
+ <div id="loadingScreen" class="loading-screen"><div class="loading-inner"><div class="loading-logo" id="loadingLogo">GESTION RP</div>
  <div class="loading-spinner"></div>
  </div>
  </div>
@@ -32,7 +32,7 @@
  </div>
 
  <!-- ===== AUTH OVERLAY ===== -->
- <div class="auth-overlay" id="authOverlay"><div class="auth-box"><div class="auth-logo"><span class="auth-logo-text">Mamba Cult MC</span>
+ <div class="auth-overlay" id="authOverlay"><div class="auth-box"><div class="auth-logo"><span class="auth-logo-text" id="authLogoText">Gestion RP</span>
  </div>
 
  <!-- Connexion -->
@@ -41,7 +41,7 @@
 
  <div class="auth-form">
  <div class="auth-field"><label class="auth-label" for="loginGroupCode">Code de groupe</label>
- <input type="text" id="loginGroupCode" class="auth-input auth-input-code" placeholder="ex: mamba-cult" autocomplete="off" spellcheck="false" />
+ <input type="text" id="loginGroupCode" class="auth-input auth-input-code" placeholder="ex: pole-illegal" autocomplete="off" spellcheck="false" />
  </div>
  <div class="auth-field"><label class="auth-label" for="loginId">Identifiant</label>
  <input type="text" id="loginId" class="auth-input" placeholder="Votre identifiant" autocomplete="off" />
@@ -62,7 +62,7 @@
 
  <div class="auth-form">
  <div class="auth-field"><label class="auth-label" for="regGroupCode">Code de groupe</label>
- <input type="text" id="regGroupCode" class="auth-input auth-input-code" placeholder="ex: mamba-cult" autocomplete="off" spellcheck="false" />
+ <input type="text" id="regGroupCode" class="auth-input auth-input-code" placeholder="ex: pole-illegal" autocomplete="off" spellcheck="false" />
  </div>
  <div class="auth-field"><label class="auth-label" for="regId">Identifiant</label>
  <input type="text" id="regId" class="auth-input" placeholder="Choisir un identifiant" autocomplete="off" />
@@ -94,7 +94,7 @@
  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
  <!-- Sidebar -->
- <aside class="sidebar" id="sidebar"><div class="sidebar-header"><div class="logo"><span class="logo-text">MAMBA CULT MC</span>
+ <aside class="sidebar" id="sidebar"><div class="sidebar-header"><div class="logo"><span class="logo-text" id="logoText">GESTION RP</span>
  </div>
  </div>
 
@@ -523,60 +523,6 @@
  <p class="admin-empty" id="gestionEmpty">Aucun groupe trouvé.</p>
  </div>
 
- <!-- Modal création / édition tenant -->
- <div class="modal-overlay" id="tenantModal">
- <div class="modal-box modal-box-lg">
- <div class="modal-header">
- <h3 id="tenantModalTitle">Nouveau groupe</h3>
- <button class="modal-close" id="tenantModalClose">✕</button>
- </div>
- <div class="modal-body">
- <input type="hidden" id="tenantEditId" />
- <div class="form-group"><label class="form-label" for="tenantName">Nom du groupe</label>
- <input type="text" id="tenantName" class="form-input" placeholder="Ex: Ghost Riders MC" autocomplete="off" />
- </div>
- <div class="form-group"><label class="form-label" for="tenantSlug">Code de groupe <span class="auth-label-required">(utilisé à la connexion)</span></label>
- <input type="text" id="tenantSlug" class="form-input" placeholder="Ex: ghost-riders" autocomplete="off" />
- <small class="form-hint">Lettres minuscules, chiffres et tirets uniquement. Immuable après création.</small>
- </div>
- <div class="form-group"><label class="form-label" for="tenantColor">Couleur principale</label>
- <div style="display:flex;align-items:center;gap:10px">
- <input type="color" id="tenantColor" class="tenant-color-picker" value="#ffffff" />
- <span id="tenantColorHex" style="font-family:monospace;font-size:0.9rem">#ffffff</span>
- </div>
- </div>
- <div class="form-group"><label class="form-label">Logo du groupe</label>
- <div class="bible-drop-zone" id="tenantLogoZone">
- <input type="file" id="tenantLogoInput" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" />
- <div class="bible-drop-content" id="tenantLogoContent">
- <div class="bible-drop-icon">+</div>
- <p>Glissez le logo ici ou <span class="bible-drop-link">cliquez pour choisir</span></p>
- <p class="bible-drop-hint">PNG, JPG, WEBP, SVG</p>
- </div>
- <div class="bible-image-preview" id="tenantLogoPreview" style="display:none">
- <img id="tenantLogoPreviewImg" src="" alt="Logo" />
- <button class="bible-preview-remove" id="tenantRemoveLogo" title="Supprimer le logo">✕</button>
- </div>
- </div>
- </div>
- <div class="form-group" id="tenantCodeGroup" style="display:none">
- <label class="form-label">Code d'inscription du jour</label>
- <div class="admin-invite-code-wrap">
- <span class="admin-invite-code" id="tenantInviteCode">——————</span>
- <button class="btn-copy-code" id="btnCopyTenantCode" title="Copier le code">⧉</button>
- </div>
- <p class="admin-invite-expire">Renouvelé automatiquement chaque jour à minuit (UTC).</p>
- </div>
- <div class="auth-error" id="tenantError" style="display:none"></div>
- </div>
- <div class="modal-footer">
- <button class="btn-cancel" id="tenantModalCancel">Annuler</button>
- <button class="btn-danger" id="btnDeleteTenant" style="display:none">Supprimer ce groupe</button>
- <button class="btn-submit" id="btnSaveTenant">Enregistrer</button>
- </div>
- </div>
- </div>
-
  </section>
 
  <!-- Territoires -->
@@ -632,16 +578,16 @@
 
  <!-- Bible -->
  <section class="section" id="section-bible">
- <div class="section-header"><p class="section-desc">Règlements, lore et documents officiels du Mamba Cult MC.</p></div>
+ <div class="section-header"><p class="section-desc">Règlements, lore et documents officiels du groupe.</p></div>
 
  <div class="bible-container">
 
    <!-- Couverture (état vide) -->
    <div class="bible-cover" id="bibleCover">
      <div class="bible-cover-inner">
-       <img src="image.png" alt="Mamba Cult MC" class="bible-cover-logo" />
+       <img src="" alt="Logo" class="bible-cover-logo" id="bibleCoverLogo" style="display:none" />
        <div class="bible-cover-title">LA BIBLE</div>
-       <div class="bible-cover-subtitle">MAMBA CULT MC</div>
+       <div class="bible-cover-subtitle" id="bibleCoverSubtitle"></div>
        <p class="bible-empty-hint" id="bibleEmptyHint">Aucune page pour l'instant.</p>
      </div>
    </div>
@@ -817,6 +763,60 @@
 <div class="modal-footer">
 <button class="btn-cancel" id="profileEditCancel">Annuler</button>
 <button class="btn-submit" id="btnSaveProfile">Enregistrer</button>
+</div>
+</div>
+</div>
+
+<!-- Modal création / édition tenant (super-admin) -->
+<div class="modal-overlay" id="tenantModal">
+<div class="modal-box modal-box-lg">
+<div class="modal-header">
+<h3 id="tenantModalTitle">Nouveau groupe</h3>
+<button class="modal-close" id="tenantModalClose">✕</button>
+</div>
+<div class="modal-body">
+<input type="hidden" id="tenantEditId" />
+<div class="form-group"><label class="form-label" for="tenantName">Nom du groupe</label>
+<input type="text" id="tenantName" class="form-input" placeholder="Ex: Ghost Riders MC" autocomplete="off" />
+</div>
+<div class="form-group"><label class="form-label" for="tenantSlug">Code de groupe <span class="auth-label-required">(utilisé à la connexion)</span></label>
+<input type="text" id="tenantSlug" class="form-input" placeholder="Ex: ghost-riders" autocomplete="off" />
+<small class="form-hint">Lettres minuscules, chiffres et tirets uniquement. Immuable après création.</small>
+</div>
+<div class="form-group"><label class="form-label" for="tenantColor">Couleur principale</label>
+<div style="display:flex;align-items:center;gap:10px">
+<input type="color" id="tenantColor" class="tenant-color-picker" value="#ffffff" />
+<span id="tenantColorHex" style="font-family:monospace;font-size:0.9rem">#ffffff</span>
+</div>
+</div>
+<div class="form-group"><label class="form-label">Logo du groupe</label>
+<div class="bible-drop-zone" id="tenantLogoZone">
+<input type="file" id="tenantLogoInput" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" />
+<div class="bible-drop-content" id="tenantLogoContent">
+<div class="bible-drop-icon">+</div>
+<p>Glissez le logo ici ou <span class="bible-drop-link">cliquez pour choisir</span></p>
+<p class="bible-drop-hint">PNG, JPG, WEBP, SVG</p>
+</div>
+<div class="bible-image-preview" id="tenantLogoPreview" style="display:none">
+<img id="tenantLogoPreviewImg" src="" alt="Logo" />
+<button class="bible-preview-remove" id="tenantRemoveLogo" title="Supprimer le logo">✕</button>
+</div>
+</div>
+</div>
+<div class="form-group" id="tenantCodeGroup" style="display:none">
+<label class="form-label">Code d'inscription du jour</label>
+<div class="admin-invite-code-wrap">
+<span class="admin-invite-code" id="tenantInviteCode">——————</span>
+<button class="btn-copy-code" id="btnCopyTenantCode" title="Copier le code">⧉</button>
+</div>
+<p class="admin-invite-expire">Renouvelé automatiquement chaque jour à minuit (UTC).</p>
+</div>
+<div class="auth-error" id="tenantError" style="display:none"></div>
+</div>
+<div class="modal-footer">
+<button class="btn-cancel" id="tenantModalCancel">Annuler</button>
+<button class="btn-danger" id="btnDeleteTenant" style="display:none">Supprimer ce groupe</button>
+<button class="btn-submit" id="btnSaveTenant">Enregistrer</button>
 </div>
 </div>
 </div>

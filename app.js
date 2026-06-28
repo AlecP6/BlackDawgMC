@@ -246,33 +246,45 @@ function loginUser(token, user, tenant) {
 // Applique le branding du tenant (couleur, logo, nom, favicon) à l'interface.
 function applyTenantBranding(tenant) {
   if (!tenant) return;
+
+  // Couleur accent
   if (tenant.color) {
     document.documentElement.style.setProperty('--accent', tenant.color);
-    document.documentElement.style.setProperty('--accent-hover', tenant.color + 'cc');
   }
 
-  const logo = document.getElementById('sidebarLogo');
-  if (logo) {
-    if (tenant.logo) {
-      logo.src = tenant.logo;
-      logo.style.display = '';
-    } else {
-      logo.src = '';
-      logo.style.display = 'none';
-    }
+  // Logo sidebar
+  const sidebarLogo = document.getElementById('sidebarLogo');
+  if (sidebarLogo) {
+    if (tenant.logo) { sidebarLogo.src = tenant.logo; sidebarLogo.style.display = ''; }
+    else             { sidebarLogo.src = ''; sidebarLogo.style.display = 'none'; }
   }
+
+  // Logo couverture Bible
+  const bibleLogo = document.getElementById('bibleCoverLogo');
+  if (bibleLogo) {
+    if (tenant.logo) { bibleLogo.src = tenant.logo; bibleLogo.style.display = ''; }
+    else             { bibleLogo.src = ''; bibleLogo.style.display = 'none'; }
+  }
+
+  // Sous-titre couverture Bible
+  const bibleSubtitle = document.getElementById('bibleCoverSubtitle');
+  if (bibleSubtitle) bibleSubtitle.textContent = (tenant.name || '').toUpperCase();
 
   // Favicon dynamique
   const favicon = document.getElementById('faviconLink');
-  if (favicon && tenant.logo) favicon.href = tenant.logo;
+  if (favicon) favicon.href = tenant.logo || '';
 
-  const logoText = document.querySelector('.logo-text');
-  if (logoText) logoText.textContent = (tenant.name || 'MC').toUpperCase();
+  // Textes de nom
+  const logoText = document.getElementById('logoText');
+  if (logoText) logoText.textContent = (tenant.name || 'Gestion RP').toUpperCase();
 
-  const authLogoText = document.querySelector('.auth-logo-text');
-  if (authLogoText) authLogoText.textContent = tenant.name || 'MC';
+  const authLogoText = document.getElementById('authLogoText');
+  if (authLogoText) authLogoText.textContent = tenant.name || 'Gestion RP';
 
-  document.title = (tenant.name || 'MC') + ' — Gestion RP';
+  const loadingLogo = document.getElementById('loadingLogo');
+  if (loadingLogo) loadingLogo.textContent = (tenant.name || 'Gestion RP').toUpperCase();
+
+  document.title = (tenant.name || 'Gestion RP') + ' — Gestion RP';
 }
 
 // Appelé après une connexion réussie : met à jour l'avatar, le nom RP en topbar,
@@ -2737,7 +2749,7 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
         body: JSON.stringify({ tenant_id: tenantId }),
       });
       const data = await res.json();
-      if (!res.ok) { showToast(data.error || 'Erreur.', 'error'); return; }
+      if (!res.ok) { showToast(data.error || 'Erreur lors du changement de groupe.', 'error'); return; }
 
       // Met à jour la session avec le nouveau tenant
       currentUser   = data.user;
@@ -2746,12 +2758,18 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
       storeSession(data.token, data.user, data.tenant);
       applyTenantBranding(data.tenant);
 
-      showToast(`Basculé sur : ${data.tenant.name}`);
-      renderGrid();
+      // Vide les caches locaux pour forcer un rechargement
+      transactions = []; weapons = []; members = []; groups = [];
+      summaries = []; missions = [];
 
-      // Recharger les données de la section active
+      showToast(`Groupe actif : ${data.tenant.name}`);
+
+      // Retour à l'accueil avec données fraîches du nouveau groupe
       switchSection('comptabilite');
-    } catch { showToast('Erreur réseau.', 'error'); }
+    } catch (e) {
+      console.error('Switch tenant error:', e);
+      showToast('Erreur réseau lors du changement de groupe.', 'error');
+    }
   }
 
   window._fetchTenants = fetchTenants;

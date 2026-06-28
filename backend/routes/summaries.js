@@ -25,7 +25,7 @@ function sendDiscordWebhook(summary) {
         { name: '📅 Date de l\'événement', value: dateFormatted,           inline: true },
         { name: '✍️ Publié par',           value: summary.created_by_name, inline: true },
       ],
-      footer:    { text: 'Mamba Cult MC — Résumé Tables' },
+      footer:    { text: 'Gestion RP — Résumé Tables' },
       timestamp: new Date().toISOString(),
     }],
   });
