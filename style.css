@@ -44,19 +44,9 @@ html, body {
   line-height: 1.6;
 }
 
-/* Fond marbre noir */
+/* Fond noir simple */
 body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image: url('https://images.unsplash.com/photo-1747696766706-5485b39bf358?w=1920&q=90');
-  background-size: cover;
-  background-position: center center;
-  background-attachment: fixed;
-  opacity: 0.55;
-  image-rendering: high-quality;
+  content: none;
 }
 
 /* ===== LOADING SCREEN ===== */
@@ -179,10 +169,7 @@ body {
 .sidebar {
   width: var(--sidebar-width);
   min-height: 100vh;
-  background-image: url('https://images.unsplash.com/photo-1747696766706-5485b39bf358?w=1920&q=90'), linear-gradient(rgba(0,0,0,0.72), rgba(0,0,0,0.72));
-  background-blend-mode: multiply;
-  background-size: cover;
-  background-position: center center;
+  background: #0a0a0a;
   border-right: 1px solid rgba(255,255,255,0.12);
   box-shadow: 4px 0 20px rgba(255,255,255,0.07);
   display: flex;
@@ -461,9 +448,7 @@ body {
 .auth-overlay {
   position: fixed;
   inset: 0;
-  background-image: url('https://images.unsplash.com/photo-1747696766706-5485b39bf358?w=1920&q=90');
-  background-size: cover;
-  background-position: center center;
+  background: #0a0a0a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3271,6 +3256,31 @@ body {
   margin-top: 2px;
 }
 
+.tenant-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-switch-tenant {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: all var(--transition);
+}
+.btn-switch-tenant:hover:not(:disabled) {
+  opacity: 0.8;
+}
+.btn-switch-tenant:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .btn-edit-tenant {
   background: none;
   border: 1px solid var(--border);
@@ -3285,6 +3295,19 @@ body {
 .btn-edit-tenant:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.tenant-active-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 20px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* Color picker */

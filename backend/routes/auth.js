@@ -87,7 +87,7 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    // Lookup tenant
+    // Lookup target tenant by group_code
     const tenantRes = await pool.query(
       'SELECT id, name, slug, primary_color, logo_data FROM tenants WHERE LOWER(slug) = LOWER($1)',
       [group_code.trim()]
@@ -95,29 +95,49 @@ router.post('/login', async (req, res) => {
     if (!tenantRes.rows.length) {
       return res.status(404).json({ error: 'Code de groupe invalide.' });
     }
-    const tenant = tenantRes.rows[0];
+    const targetTenant = tenantRes.rows[0];
 
-    // Find user within tenant
-    const result = await pool.query(
+    // Find user: first try in the target tenant, then check if super-admin in any tenant
+    let userResult = await pool.query(
       'SELECT * FROM users WHERE LOWER(username) = LOWER($1) AND tenant_id = $2',
-      [username, tenant.id]
+      [username, targetTenant.id]
     );
-    if (!result.rows.length) {
+
+    // If not found in target tenant, check if this user is a super-admin in another tenant
+    let isSwitching = false;
+    if (!userResult.rows.length) {
+      userResult = await pool.query(
+        'SELECT * FROM users WHERE LOWER(username) = LOWER($1) AND is_super_admin = TRUE',
+        [username]
+      );
+      if (userResult.rows.length) isSwitching = true;
+    }
+
+    if (!userResult.rows.length) {
       return res.status(401).json({ error: 'Identifiant ou mot de passe incorrect.' });
     }
 
-    const user  = result.rows[0];
+    const user  = userResult.rows[0];
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
       return res.status(401).json({ error: 'Identifiant ou mot de passe incorrect.' });
     }
 
+    // Super-admin peut accéder à n'importe quel tenant ; un utilisateur normal reste dans son tenant
+    if (isSwitching && !user.is_super_admin) {
+      return res.status(401).json({ error: 'Identifiant ou mot de passe incorrect.' });
+    }
+
+    // Le tenant actif est le tenant cible (pour un super-admin qui bascule de groupe)
+    const activeTenant = targetTenant;
+
     const token = jwt.sign(
       {
         id: user.id, username: user.username, rp_name: user.rp_name,
-        is_admin: user.is_admin, is_super_admin: user.is_super_admin || false,
-        tenant_id: tenant.id, tenant_name: tenant.name, tenant_slug: tenant.slug,
-        tenant_color: tenant.primary_color, tenant_logo: tenant.logo_data,
+        is_admin: isSwitching ? true : user.is_admin,
+        is_super_admin: user.is_super_admin || false,
+        tenant_id: activeTenant.id, tenant_name: activeTenant.name, tenant_slug: activeTenant.slug,
+        tenant_color: activeTenant.primary_color, tenant_logo: activeTenant.logo_data,
       },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
@@ -125,11 +145,56 @@ router.post('/login', async (req, res) => {
 
     res.json({
       token,
-      user: { id: user.id, username: user.username, rp_name: user.rp_name, is_admin: user.is_admin, is_super_admin: user.is_super_admin || false },
-      tenant: { id: tenant.id, name: tenant.name, slug: tenant.slug, color: tenant.primary_color, logo: tenant.logo_data },
+      user: {
+        id: user.id, username: user.username, rp_name: user.rp_name,
+        is_admin: isSwitching ? true : user.is_admin,
+        is_super_admin: user.is_super_admin || false,
+      },
+      tenant: { id: activeTenant.id, name: activeTenant.name, slug: activeTenant.slug, color: activeTenant.primary_color, logo: activeTenant.logo_data },
     });
   } catch (err) {
     console.error('Login error:', err);
+    res.status(500).json({ error: 'Erreur serveur.' });
+  }
+});
+
+// POST /api/auth/switch-tenant — super-admin uniquement : basculer vers un autre tenant
+router.post('/switch-tenant', require('../middleware/authMiddleware'), async (req, res) => {
+  if (!req.user.is_super_admin) return res.status(403).json({ error: 'Réservé au super-administrateur.' });
+  const { tenant_id } = req.body;
+  if (!tenant_id) return res.status(400).json({ error: 'tenant_id requis.' });
+
+  try {
+    const tenantRes = await pool.query(
+      'SELECT id, name, slug, primary_color, logo_data FROM tenants WHERE id = $1',
+      [tenant_id]
+    );
+    if (!tenantRes.rows.length) return res.status(404).json({ error: 'Tenant introuvable.' });
+    const t = tenantRes.rows[0];
+
+    // Fetch current user
+    const userRes = await pool.query('SELECT * FROM users WHERE id = $1', [req.user.id]);
+    if (!userRes.rows.length) return res.status(404).json({ error: 'Utilisateur introuvable.' });
+    const user = userRes.rows[0];
+
+    const token = jwt.sign(
+      {
+        id: user.id, username: user.username, rp_name: user.rp_name,
+        is_admin: true, is_super_admin: true,
+        tenant_id: t.id, tenant_name: t.name, tenant_slug: t.slug,
+        tenant_color: t.primary_color, tenant_logo: t.logo_data,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      token,
+      user: { id: user.id, username: user.username, rp_name: user.rp_name, is_admin: true, is_super_admin: true },
+      tenant: { id: t.id, name: t.name, slug: t.slug, color: t.primary_color, logo: t.logo_data },
+    });
+  } catch (err) {
+    console.error('Switch tenant error:', err);
     res.status(500).json({ error: 'Erreur serveur.' });
   }
 });

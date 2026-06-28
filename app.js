@@ -243,15 +243,28 @@ function loginUser(token, user, tenant) {
   onUserLoggedIn(user);
 }
 
-// Applique le branding du tenant (couleur, logo, nom) à l'interface.
+// Applique le branding du tenant (couleur, logo, nom, favicon) à l'interface.
 function applyTenantBranding(tenant) {
   if (!tenant) return;
   if (tenant.color) {
     document.documentElement.style.setProperty('--accent', tenant.color);
     document.documentElement.style.setProperty('--accent-hover', tenant.color + 'cc');
   }
-  const logo = document.querySelector('.sidebar-img');
-  if (logo) logo.src = tenant.logo || 'image.png';
+
+  const logo = document.getElementById('sidebarLogo');
+  if (logo) {
+    if (tenant.logo) {
+      logo.src = tenant.logo;
+      logo.style.display = '';
+    } else {
+      logo.src = '';
+      logo.style.display = 'none';
+    }
+  }
+
+  // Favicon dynamique
+  const favicon = document.getElementById('faviconLink');
+  if (favicon && tenant.logo) favicon.href = tenant.logo;
 
   const logoText = document.querySelector('.logo-text');
   if (logoText) logoText.textContent = (tenant.name || 'MC').toUpperCase();
@@ -288,8 +301,9 @@ document.getElementById('btnLogout')?.addEventListener('click', () => {
   document.getElementById('loginPwd').value = '';
   // Reset branding to defaults
   document.documentElement.style.setProperty('--accent', '#ffffff');
-  const logo = document.querySelector('.sidebar-img');
-  if (logo) logo.src = 'image.png';
+  const logo = document.getElementById('sidebarLogo');
+  if (logo) { logo.src = ''; logo.style.display = 'none'; }
+  document.title = 'MC — Gestion RP';
   clearAuthErrors();
   showPanel('panelLogin');
   showAuthOverlay();
@@ -2543,19 +2557,27 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
     tenants.forEach(t => {
       const card = document.createElement('div');
       card.className = 'tenant-card';
+      const isActive = currentTenant && currentTenant.id === t.id;
       card.innerHTML = `
         <div class="tenant-card-color" style="background:${t.primary_color || '#ffffff'}"></div>
         <div class="tenant-card-info">
-          <div class="tenant-card-name">${t.name}</div>
+          <div class="tenant-card-name">${t.name}${isActive ? ' <span class="tenant-active-badge">actif</span>' : ''}</div>
           <div class="tenant-card-slug">Code : <strong>${t.slug}</strong></div>
         </div>
-        <button class="btn-edit-tenant" data-id="${t.id}" title="Modifier">✏</button>
+        <div class="tenant-card-actions">
+          <button class="btn-switch-tenant" data-id="${t.id}" title="Accéder à ce groupe" ${isActive ? 'disabled' : ''}>Accéder</button>
+          <button class="btn-edit-tenant" data-id="${t.id}" title="Modifier">✏</button>
+        </div>
       `;
       grid.appendChild(card);
     });
 
     grid.querySelectorAll('.btn-edit-tenant').forEach(btn => {
       btn.addEventListener('click', () => openModal_edit(parseInt(btn.dataset.id)));
+    });
+
+    grid.querySelectorAll('.btn-switch-tenant').forEach(btn => {
+      btn.addEventListener('click', () => switchToTenant(parseInt(btn.dataset.id)));
     });
   }
 
@@ -2706,6 +2728,31 @@ document.querySelectorAll('.admin-card-header-toggle').forEach(header => {
       } catch { showToast('Erreur réseau.', 'error'); }
     }, 'Supprimer');
   });
+
+  async function switchToTenant(tenantId) {
+    try {
+      const res  = await fetch(`${API}/auth/switch-tenant`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ tenant_id: tenantId }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error || 'Erreur.', 'error'); return; }
+
+      // Met à jour la session avec le nouveau tenant
+      currentUser   = data.user;
+      authToken     = data.token;
+      currentTenant = data.tenant;
+      storeSession(data.token, data.user, data.tenant);
+      applyTenantBranding(data.tenant);
+
+      showToast(`Basculé sur : ${data.tenant.name}`);
+      renderGrid();
+
+      // Recharger les données de la section active
+      switchSection('comptabilite');
+    } catch { showToast('Erreur réseau.', 'error'); }
+  }
 
   window._fetchTenants = fetchTenants;
 })();
