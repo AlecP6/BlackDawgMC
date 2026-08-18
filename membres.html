@@ -85,6 +85,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           <span>Infos Groupes</span>
         </button>
+        <button class="nav-item" data-section="stock">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <span>Stock</span>
+        </button>
         <button class="nav-item nav-item-admin hidden" data-section="membres">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span>Membres</span>
@@ -173,10 +177,6 @@
           <div class="summary-card card-income">
             <span class="card-label">En stock</span>
             <span class="card-value" id="weaponsInStock">0</span>
-          </div>
-          <div class="summary-card card-expense">
-            <span class="card-label">Stock critique</span>
-            <span class="card-value" id="weaponsLow">0</span>
           </div>
         </div>
 
@@ -314,6 +314,24 @@
 
         <div class="groups-cards" id="groupsCards"></div>
         <div id="groupsEmpty" class="table-empty hidden"><p>Aucun groupe enregistré.</p></div>
+      </section>
+
+      <!-- ---- STOCK BUSINESS ---- -->
+      <section id="sectionStock" class="section">
+        <div class="section-header">
+          <div>
+            <h2>Stock</h2>
+            <p>Inventaire des objets liés aux business du club</p>
+          </div>
+          <button class="btn-add" id="btnAddStock">+ Ajouter un article</button>
+        </div>
+
+        <div class="table-toolbar">
+          <input type="text" class="search-input" id="searchStock" placeholder="Rechercher..." />
+        </div>
+
+        <div class="stock-cards" id="stockCards"></div>
+        <div id="stockEmpty" class="table-empty hidden"><p>Aucun article en stock.</p></div>
       </section>
 
       <!-- ---- GESTION MEMBRES (admin only) ---- -->
@@ -674,6 +692,54 @@
         </div>
         <div class="modal-actions">
           <button type="button" class="btn-cancel" data-modal="modalPrice">Annuler</button>
+          <button type="submit" class="btn-save">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== MODAL STOCK ========== -->
+  <div id="modalStock" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalStockTitle">Ajouter un article</h3>
+        <button class="modal-close" data-modal="modalStock">&times;</button>
+      </div>
+      <form id="formStock">
+        <input type="hidden" id="stockId" />
+        <div class="form-row">
+          <div class="form-group">
+            <label for="stockName">Nom de l'article</label>
+            <input type="text" id="stockName" placeholder="Ex: Coke, Weed, Composants..." required />
+          </div>
+          <div class="form-group">
+            <label for="stockBusiness">Business associé</label>
+            <input type="text" id="stockBusiness" placeholder="Ex: Labo, Ferme, Atelier..." />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="stockQty">Quantité</label>
+            <input type="number" id="stockQty" min="0" placeholder="0" required />
+          </div>
+          <div class="form-group">
+            <label for="stockUnit">Unité</label>
+            <select id="stockUnit">
+              <option value="unité">Unité</option>
+              <option value="kg">Kg</option>
+              <option value="litre">Litre</option>
+              <option value="lot">Lot</option>
+              <option value="caisse">Caisse</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="stockNotes">Notes</label>
+          <textarea id="stockNotes" rows="3" placeholder="Localisation, état, détails..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" data-modal="modalStock">Annuler</button>
           <button type="submit" class="btn-save">Enregistrer</button>
         </div>
       </form>

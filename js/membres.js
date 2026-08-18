@@ -116,7 +116,7 @@ function initDashboard() {
   const SECTION_LABELS = {
     compta: 'Comptabilité', armurerie: 'Armurerie',
     prix: 'Infos Prix', annuaire: 'Annuaire',
-    groupes: 'Infos Groupes', membres: 'Membres'
+    groupes: 'Infos Groupes', stock: 'Stock', membres: 'Membres'
   };
 
   document.querySelectorAll('.nav-item').forEach(btn => {
@@ -137,6 +137,7 @@ function initDashboard() {
   $('searchPrix').addEventListener('input', renderPrices);
   $('searchAnnuaire').addEventListener('input', renderContacts);
   $('searchGroupes').addEventListener('input', renderGroups);
+  $('searchStock').addEventListener('input', renderStock);
 
   ['filter','wfilter','pfilter','cfilter','gfilter'].forEach(key => {
     document.querySelectorAll(`[data-${key}]`).forEach(btn => {
@@ -156,7 +157,7 @@ function initDashboard() {
 }
 
 async function loadAll() {
-  await Promise.all([renderCompta(), renderArms(), renderPrices(), renderContacts(), renderGroups(), renderMembers()]);
+  await Promise.all([renderCompta(), renderArms(), renderPrices(), renderContacts(), renderGroups(), renderStock(), renderMembers()]);
 }
 
 /* ====================================
@@ -173,7 +174,7 @@ document.querySelectorAll('.modal').forEach(m => {
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape')
-    ['modalTransaction','modalWeapon','modalPrice','modalContact','modalGroup','modalMember','modalConfirm']
+    ['modalTransaction','modalWeapon','modalPrice','modalContact','modalGroup','modalStock','modalMember','modalConfirm']
     .forEach(id => { if (!$(id).classList.contains('hidden')) closeModal(id); });
 });
 
@@ -281,7 +282,6 @@ async function renderArms() {
 
   $('totalWeapons').textContent   = data.reduce((s,w) => s + w.qty, 0);
   $('weaponsInStock').textContent = data.filter(w => w.status === 'Disponible').reduce((s,w) => s + w.qty, 0);
-  $('weaponsLow').textContent     = data.filter(w => w.qty <= 2).length;
 
   const filter = document.querySelector('[data-wfilter].active')?.dataset.wfilter || 'all';
   const search = $('searchArmes').value.toLowerCase().trim();
@@ -627,6 +627,89 @@ $('formGroup').addEventListener('submit', async e => {
 });
 
 /* ====================================
+   STOCK BUSINESS
+   ==================================== */
+let _stockData = [];
+
+async function renderStock() {
+  try { _stockData = await api('GET', 'stock'); } catch (e) { showError(e.message); return; }
+  let data = [..._stockData];
+
+  const search = $('searchStock').value.toLowerCase().trim();
+  if (search) data = data.filter(s => s.name.toLowerCase().includes(search) || (s.business||'').toLowerCase().includes(search));
+  data.sort((a,b) => (a.business||'').localeCompare(b.business||'') || a.name.localeCompare(b.name));
+
+  const container = $('stockCards');
+  container.innerHTML = '';
+  if (!data.length) { $('stockEmpty').classList.remove('hidden'); return; }
+  $('stockEmpty').classList.add('hidden');
+
+  data.forEach(s => {
+    const canEdit = currentUser.role === 'admin' || s.created_by === currentUser.username;
+    const card = document.createElement('div');
+    card.className = 'stock-card';
+    card.innerHTML = `
+      <div class="stock-card-header">
+        <div class="stock-name">${escHtml(s.name)}</div>
+        ${s.business ? `<span class="biz-tag">${escHtml(s.business)}</span>` : ''}
+      </div>
+      <div class="stock-card-body">
+        <div class="stock-qty">
+          <span class="stock-qty-value">${s.qty}</span>
+          <span class="stock-qty-unit">${escHtml(s.unit)}</span>
+        </div>
+        ${s.notes ? `<div class="stock-notes">${escHtml(s.notes)}</div>` : ''}
+      </div>
+      <div class="stock-card-footer">
+        <span class="author-tag">${escHtml(s.created_by||'—')}</span>${s.updated_by?`<span class="edit-tag"> ✎ ${escHtml(s.updated_by)}</span>`:''}
+        <div class="action-btns">${canEdit
+          ? `<button class="btn-edit" onclick="editStock('${s.id}')">Modifier</button><button class="btn-del" onclick="confirmDelete('stock','${s.id}','${escHtml(s.name)}')">Suppr.</button>`
+          : ''}</div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+$('btnAddStock').addEventListener('click', () => {
+  $('modalStockTitle').textContent = 'Ajouter un article';
+  $('formStock').reset();
+  $('stockId').value = '';
+  openModal('modalStock');
+});
+
+window.editStock = id => {
+  const s = _stockData.find(x => x.id === id);
+  if (!s) return;
+  $('modalStockTitle').textContent = 'Modifier l\'article';
+  $('stockId').value       = s.id;
+  $('stockName').value     = s.name;
+  $('stockBusiness').value = s.business || '';
+  $('stockQty').value      = s.qty;
+  $('stockUnit').value     = s.unit;
+  $('stockNotes').value    = s.notes || '';
+  openModal('modalStock');
+};
+
+$('formStock').addEventListener('submit', async e => {
+  e.preventDefault();
+  const id = $('stockId').value;
+  const body = {
+    id,
+    name:     $('stockName').value.trim(),
+    business: $('stockBusiness').value.trim() || null,
+    qty:      parseInt($('stockQty').value, 10),
+    unit:     $('stockUnit').value,
+    notes:    $('stockNotes').value.trim() || null,
+  };
+  try {
+    if (id) await api('PUT', 'stock', body);
+    else    await api('POST', 'stock', body);
+    closeModal('modalStock');
+    renderStock();
+  } catch(e) { showError(e.message); }
+});
+
+/* ====================================
    GESTION MEMBRES
    ==================================== */
 let _usersData = [];
@@ -695,8 +778,8 @@ window.confirmDelete = (type, id, label) => {
 $('confirmDeleteBtn').addEventListener('click', async () => {
   if (!_deleteTarget) return;
   const { type, id } = _deleteTarget;
-  const routes = { transaction:'transactions', weapon:'weapons', price:'prices', contact:'contacts', group:'groups', member:'users' };
-  const renders = { transaction:renderCompta, weapon:renderArms, price:renderPrices, contact:renderContacts, group:renderGroups, member:renderMembers };
+  const routes = { transaction:'transactions', weapon:'weapons', price:'prices', contact:'contacts', group:'groups', stock:'stock', member:'users' };
+  const renders = { transaction:renderCompta, weapon:renderArms, price:renderPrices, contact:renderContacts, group:renderGroups, stock:renderStock, member:renderMembers };
   try {
     await api('DELETE', `${routes[type]}?id=${id}`, null);
     renders[type]?.();

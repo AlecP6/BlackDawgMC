@@ -540,6 +540,87 @@ ul { list-style: none; }
   background: var(--dark-2);
 }
 
+/* ====================================
+   STOCK BUSINESS — CARTES
+   ==================================== */
+.stock-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.stock-card {
+  background: var(--dark);
+  border: 1px solid var(--gray);
+  border-left: 3px solid var(--red-dark);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: box-shadow var(--transition);
+}
+
+.stock-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+
+.stock-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--gray);
+}
+
+.stock-name {
+  font-family: var(--font-title);
+  font-size: 1.2rem;
+  letter-spacing: 0.06em;
+}
+
+.stock-card-body {
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stock-qty {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.stock-qty-value {
+  font-family: var(--font-title);
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+  color: var(--white);
+  line-height: 1;
+}
+
+.stock-qty-unit {
+  font-family: var(--font-sub);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gray-light);
+}
+
+.stock-notes {
+  font-size: 0.83rem;
+  color: var(--white-dim);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.stock-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 18px;
+  border-top: 1px solid var(--gray);
+  background: var(--dark-2);
+}
+
 /* Modal groupes */
 .modal-box-lg { max-width: 620px; }
 
