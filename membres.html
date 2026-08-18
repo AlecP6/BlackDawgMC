@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlackDawg MC — Espace Membres</title>
+  <link rel="icon" href="assets/logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;600;700&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/membres.css" />
+</head>
+<body>
+
+  <!-- ========== LOGIN ========== -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <img src="assets/logo.png" alt="BlackDawg MC" class="login-logo" />
+      <h1 class="login-title">Espace Membres</h1>
+      <p class="login-subtitle">Accès réservé aux membres du Black Dawg MC</p>
+      <form id="loginForm" novalidate>
+        <div class="login-field">
+          <label for="loginUsername">Identifiant</label>
+          <input type="text" id="loginUsername" placeholder="Ton pseudo" autocomplete="username" />
+        </div>
+        <div class="login-field">
+          <label for="loginPassword">Mot de passe</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <button type="submit" class="login-btn">Accéder</button>
+        <p id="loginError" class="login-error"></p>
+      </form>
+      <a href="index.html" class="login-back">Retour au site</a>
+    </div>
+  </div>
+
+  <!-- ========== DASHBOARD ========== -->
+  <div id="dashboard" class="dashboard hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="assets/logo.png" alt="BlackDawg MC" />
+        <div>
+          <span class="sidebar-title">BlackDawg MC</span>
+          <span class="sidebar-sub">Espace Membres</span>
+        </div>
+      </div>
+
+      <div class="sidebar-user" id="sidebarUser">
+        <!-- rempli par JS -->
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-section="compta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          <span>Comptabilité</span>
+        </button>
+        <button class="nav-item" data-section="armurerie">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
+          <span>Armurerie</span>
+        </button>
+        <button class="nav-item" data-section="prix">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span>Infos Prix</span>
+        </button>
+        <button class="nav-item" data-section="annuaire">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.37 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 5.49 5.49l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/></svg>
+          <span>Annuaire</span>
+        </button>
+        <button class="nav-item" data-section="groupes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <span>Infos Groupes</span>
+        </button>
+        <button class="nav-item nav-item-admin hidden" data-section="membres">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Membres</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="logout-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Déconnexion</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- ---- COMPTABILITÉ ---- -->
+      <section id="sectionCompta" class="section active">
+        <div class="section-header">
+          <div>
+            <h2>Comptabilité du Club</h2>
+            <p>Suivi des entrées et sorties de fonds</p>
+          </div>
+          <button class="btn-add" id="btnAddTransaction">+ Ajouter une transaction</button>
+        </div>
+
+        <div class="summary-cards">
+          <div class="summary-card card-balance">
+            <span class="card-label">Solde actuel</span>
+            <span class="card-value" id="totalBalance">$0</span>
+          </div>
+          <div class="summary-card card-income">
+            <span class="card-label">Total entrées</span>
+            <span class="card-value" id="totalIncome">$0</span>
+          </div>
+          <div class="summary-card card-expense">
+            <span class="card-label">Total sorties</span>
+            <span class="card-value" id="totalExpense">$0</span>
+          </div>
+        </div>
+
+        <div class="table-toolbar">
+          <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">Tout</button>
+            <button class="filter-tab" data-filter="income">Entrées</button>
+            <button class="filter-tab" data-filter="expense">Sorties</button>
+          </div>
+          <input type="text" class="search-input" id="searchCompta" placeholder="Rechercher..." />
+        </div>
+
+        <div class="table-wrap">
+          <table id="comptaTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Catégorie</th>
+                <th>Type</th>
+                <th>Montant</th>
+                <th>Ajouté par</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="comptaBody"></tbody>
+          </table>
+          <div id="comptaEmpty" class="table-empty hidden"><p>Aucune transaction enregistrée.</p></div>
+        </div>
+      </section>
+
+      <!-- ---- ARMURERIE ---- -->
+      <section id="sectionArmurerie" class="section">
+        <div class="section-header">
+          <div>
+            <h2>Armurerie du Club</h2>
+            <p>Inventaire et gestion du stock d'armes</p>
+          </div>
+          <button class="btn-add" id="btnAddWeapon">+ Ajouter une arme</button>
+        </div>
+
+        <div class="summary-cards">
+          <div class="summary-card card-balance">
+            <span class="card-label">Total armes</span>
+            <span class="card-value" id="totalWeapons">0</span>
+          </div>
+          <div class="summary-card card-income">
+            <span class="card-label">En stock</span>
+            <span class="card-value" id="weaponsInStock">0</span>
+          </div>
+          <div class="summary-card card-expense">
+            <span class="card-label">Stock critique</span>
+            <span class="card-value" id="weaponsLow">0</span>
+          </div>
+        </div>
+
+        <div class="table-toolbar">
+          <div class="filter-tabs">
+            <button class="filter-tab active" data-wfilter="all">Tout</button>
+            <button class="filter-tab" data-wfilter="Pistolet">Pistolets</button>
+            <button class="filter-tab" data-wfilter="Fusil">Fusils</button>
+            <button class="filter-tab" data-wfilter="Mitrailleuse">Mitrailleuses</button>
+            <button class="filter-tab" data-wfilter="Autre">Autres</button>
+          </div>
+          <input type="text" class="search-input" id="searchArmes" placeholder="Rechercher..." />
+        </div>
+
+        <div class="table-wrap">
+          <table id="armsTable">
+            <thead>
+              <tr>
+                <th>Arme</th>
+                <th>Catégorie</th>
+                <th>Calibre</th>
+                <th>Quantité</th>
+                <th>État</th>
+                <th>Notes</th>
+                <th>Ajouté par</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="armsBody"></tbody>
+          </table>
+          <div id="armsEmpty" class="table-empty hidden"><p>Aucune arme enregistrée dans l'inventaire.</p></div>
+        </div>
+      </section>
+
+      <!-- ---- INFORMATIONS PRIX ---- -->
+      <section id="sectionPrix" class="section">
+        <div class="section-header">
+          <div>
+            <h2>Informations Prix</h2>
+            <p>Tarifs des armes, business et services</p>
+          </div>
+          <button class="btn-add" id="btnAddPrice">+ Ajouter un prix</button>
+        </div>
+
+        <div class="table-toolbar">
+          <div class="filter-tabs" id="priceFilterTabs">
+            <button class="filter-tab active" data-pfilter="all">Tout</button>
+            <button class="filter-tab" data-pfilter="Armes">Armes</button>
+            <button class="filter-tab" data-pfilter="Business">Business</button>
+            <button class="filter-tab" data-pfilter="Véhicules">Véhicules</button>
+            <button class="filter-tab" data-pfilter="Services">Services</button>
+            <button class="filter-tab" data-pfilter="Autre">Autre</button>
+          </div>
+          <input type="text" class="search-input" id="searchPrix" placeholder="Rechercher..." />
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Catégorie</th>
+                <th>Prix achat</th>
+                <th>Prix revente</th>
+                <th>Unité</th>
+                <th>Notes</th>
+                <th>Ajouté par</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pricesBody"></tbody>
+          </table>
+          <div id="pricesEmpty" class="table-empty hidden"><p>Aucune information de prix enregistrée.</p></div>
+        </div>
+      </section>
+
+      <!-- ---- ANNUAIRE ---- -->
+      <section id="sectionAnnuaire" class="section">
+        <div class="section-header">
+          <div>
+            <h2>Annuaire du Club</h2>
+            <p>Numéros de téléphone des membres</p>
+          </div>
+          <button class="btn-add" id="btnAddContact">+ Ajouter un contact</button>
+        </div>
+
+        <div class="table-toolbar">
+          <div class="filter-tabs">
+            <button class="filter-tab active" data-cfilter="all">Tous</button>
+            <button class="filter-tab" data-cfilter="Haut gradé">Haut gradés</button>
+            <button class="filter-tab" data-cfilter="Gradé">Gradés</button>
+            <button class="filter-tab" data-cfilter="Membre">Membres</button>
+            <button class="filter-tab" data-cfilter="Prospect">Prospects</button>
+          </div>
+          <input type="text" class="search-input" id="searchAnnuaire" placeholder="Rechercher..." />
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom / Pseudo</th>
+                <th>Grade</th>
+                <th>Numéro</th>
+                <th>Notes</th>
+                <th>Ajouté par</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="contactsBody"></tbody>
+          </table>
+          <div id="contactsEmpty" class="table-empty hidden"><p>Aucun contact enregistré.</p></div>
+        </div>
+      </section>
+
+      <!-- ---- INFOS GROUPES ---- -->
+      <section id="sectionGroupes" class="section">
+        <div class="section-header">
+          <div>
+            <h2>Infos Groupes</h2>
+            <p>Répertoire des groupes, alliés et adversaires</p>
+          </div>
+          <button class="btn-add" id="btnAddGroup">+ Ajouter un groupe</button>
+        </div>
+
+        <div class="table-toolbar">
+          <div class="filter-tabs">
+            <button class="filter-tab active" data-gfilter="all">Tous</button>
+            <button class="filter-tab" data-gfilter="Allié">Alliés</button>
+            <button class="filter-tab" data-gfilter="Neutre">Neutres</button>
+            <button class="filter-tab" data-gfilter="Ennemi">Ennemis</button>
+          </div>
+          <input type="text" class="search-input" id="searchGroupes" placeholder="Rechercher..." />
+        </div>
+
+        <div class="groups-cards" id="groupsCards"></div>
+        <div id="groupsEmpty" class="table-empty hidden"><p>Aucun groupe enregistré.</p></div>
+      </section>
+
+      <!-- ---- GESTION MEMBRES (admin only) ---- -->
+      <section id="sectionMembres" class="section">
+        <div class="section-header">
+          <div>
+            <h2>Gestion des Membres</h2>
+            <p>Ajouter ou supprimer des accès à l'espace membres</p>
+          </div>
+          <button class="btn-add" id="btnAddMember">+ Ajouter un membre</button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Identifiant</th>
+                <th>Rôle</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="membersBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ========== MODAL TRANSACTION ========== -->
+  <div id="modalTransaction" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalTransactionTitle">Ajouter une transaction</h3>
+        <button class="modal-close" data-modal="modalTransaction">&times;</button>
+      </div>
+      <form id="formTransaction">
+        <input type="hidden" id="transactionId" />
+        <div class="form-row">
+          <div class="form-group">
+            <label for="transDate">Date</label>
+            <input type="date" id="transDate" required />
+          </div>
+          <div class="form-group">
+            <label for="transType">Type</label>
+            <select id="transType" required>
+              <option value="income">Entrée</option>
+              <option value="expense">Sortie</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="transDesc">Description</label>
+          <input type="text" id="transDesc" placeholder="Ex: Vente de véhicules" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="transCategory">Catégorie</label>
+            <select id="transCategory">
+              <option value="Opération">Opération</option>
+              <option value="Cotisation">Cotisation</option>
+              <option value="Matériel">Matériel</option>
+              <option value="Véhicule">Véhicule</option>
+              <option value="Amende">Amende</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="transAmount">Montant ($)</label>
+            <input type="number" id="transAmount" min="1" placeholder="0" required />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" data-modal="modalTransaction">Annuler</button>
+          <button type="submit" class="btn-save">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== MODAL ARME ========== -->
+  <div id="modalWeapon" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalWeaponTitle">Ajouter une arme</h3>
+        <button class="modal-close" data-modal="modalWeapon">&times;</button>
+      </div>
+      <form id="formWeapon">
+        <input type="hidden" id="weaponId" />
+        <div class="form-row">
+          <div class="form-group">
+            <label for="weaponName">Nom de l'arme</label>
+            <select id="weaponName" required>
+              <option value="">-- Sélectionner --</option>
+              <optgroup label="Pistolets">
+                <option>Pistolet SNS</option>
+                <option>Pistolet céramique</option>
+                <option>Pistolet de combat</option>
+                <option>Pistolet 8x3m</option>
+                <option>Pistolet Lourd</option>
+                <option>Pistolet MK2</option>
+                <option>Pistolet Cal.50</option>
+                <option>Pistolet automatique Tec9</option>
+              </optgroup>
+              <optgroup label="SMG / Micro-SMG">
+                <option>Skorpion (mini-smg)</option>
+                <option>Uzi (micro-smg)</option>
+                <option>PDW de Combat</option>
+                <option>TMP</option>
+                <option>SMG d'assaut</option>
+              </optgroup>
+              <optgroup label="Fusils / Assaut">
+                <option>AK-U</option>
+                <option>Gusenberg</option>
+              </optgroup>
+              <optgroup label="Fusils à pompe">
+                <option>Canon scié</option>
+                <option>Double canon</option>
+              </optgroup>
+              <optgroup label="MK2 / Spéciaux">
+                <option>Revolver MK2</option>
+                <option>SNS MK2</option>
+                <option>Assault MK2</option>
+                <option>Pompe MK2</option>
+                <option>Revolver Navy</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="weaponCategory">Catégorie</label>
+            <select id="weaponCategory" required>
+              <option value="Pistolet">Pistolet</option>
+              <option value="Fusil">Fusil</option>
+              <option value="Mitrailleuse">Mitrailleuse</option>
+              <option value="Fusil à pompe">Fusil à pompe</option>
+              <option value="Sniper">Sniper</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="weaponCaliber">Calibre</label>
+            <input type="text" id="weaponCaliber" placeholder="Ex: 9mm" />
+          </div>
+          <div class="form-group">
+            <label for="weaponQty">Quantité</label>
+            <input type="number" id="weaponQty" min="0" placeholder="0" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="weaponStatus">État</label>
+          <select id="weaponStatus">
+            <option value="Disponible">Disponible</option>
+            <option value="Assignée">Assignée</option>
+            <option value="Hors service">Hors service</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="weaponNotes">Notes</label>
+          <textarea id="weaponNotes" rows="2" placeholder="Informations supplémentaires..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" data-modal="modalWeapon">Annuler</button>
+          <button type="submit" class="btn-save">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== MODAL GROUPE ========== -->
+  <div id="modalGroup" class="modal hidden">
+    <div class="modal-box modal-box-lg">
+      <div class="modal-header">
+        <h3 id="modalGroupTitle">Ajouter un groupe</h3>
+        <button class="modal-close" data-modal="modalGroup">&times;</button>
+      </div>
+      <form id="formGroup">
+        <input type="hidden" id="groupId" />
+        <div class="form-row">
+          <div class="form-group">
+            <label for="groupName">Nom du groupe</label>
+            <input type="text" id="groupName" placeholder="Ex: Lost MC, Vagos..." required />
+          </div>
+          <div class="form-group">
+            <label for="groupRelation">Relation</label>
+            <select id="groupRelation">
+              <option value="Allié">Allié</option>
+              <option value="Neutre">Neutre</option>
+              <option value="Ennemi">Ennemi</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Numéros de téléphone</label>
+          <div id="phonesList">
+            <div class="phone-entry">
+              <input type="text" class="phone-input" placeholder="Nom du contact — Ex: Chef du groupe" />
+              <input type="text" class="phone-number-input" placeholder="Numéro — Ex: 555-0199" />
+              <button type="button" class="btn-remove-phone">✕</button>
+            </div>
+          </div>
+          <button type="button" class="btn-add-phone" id="btnAddPhone">+ Ajouter un numéro</button>
+        </div>
+
+        <div class="form-group">
+          <label>Business liés</label>
+          <div id="businessList">
+            <div class="business-entry">
+              <input type="text" class="business-input" placeholder="Ex: Garage Southside, Blanchiment..." />
+              <button type="button" class="btn-remove-business">✕</button>
+            </div>
+          </div>
+          <button type="button" class="btn-add-business" id="btnAddBusiness">+ Ajouter un business</button>
+        </div>
+
+        <div class="form-group">
+          <label for="groupNotes">Notes</label>
+          <textarea id="groupNotes" rows="4" placeholder="Territoire, historique, informations importantes..."></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" data-modal="modalGroup">Annuler</button>
+          <button type="submit" class="btn-save">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== MODAL CONTACT ========== -->
+  <div id="modalContact" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalContactTitle">Ajouter un contact</h3>
+        <button class="modal-close" data-modal="modalContact">&times;</button>
+      </div>
+      <form id="formContact">
+        <input type="hidden" id="contactId" />
+        <div class="form-row">
+          <div class="form-group">
+            <label for="contactName">Nom / Pseudo RP</label>
+            <input type="text" id="contactName" placeholder="Ex: Alec, Marcus..." required />
+          </div>
+          <div class="form-group">
+            <label for="contactGrade">Grade</label>
+            <select id="contactGrade">
+              <option value="Haut gradé">Haut gradé</option>
+              <option value="Gradé">Gradé</option>
+              <option value="Membre">Membre</option>
+              <option value="Prospect">Prospect</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="contactPhone">Numéro de téléphone</label>
+          <input type="text" id="contactPhone" placeholder="Ex: 555-0142, (555) 123-4567..." required />
+        </div>
+        <div class="form-group">
+          <label for="contactNotes">Notes</label>
+          <textarea id="contactNotes" rows="2" placeholder="Informations supplémentaires..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" data-modal="modalContact">Annuler</button>
+          <button type="submit" class="btn-save">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== MODAL PRIX ========== -->
+  <div id="modalPrice" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalPriceTitle">Ajouter un prix</h3>
+        <button class="modal-close" data-modal="modalPrice">&times;</button>
+      </div>
+      <form id="formPrice">
+        <input type="hidden" id="priceId" />
+        <div class="form-row">
+          <div class="form-group" id="priceNameGroup">
+            <label for="priceName">Nom</label>
+            <input type="text" id="priceName" placeholder="Ex: Braquage banque, Business..." required />
+          </div>
+          <div class="form-group hidden" id="priceNameWeaponGroup">
+            <label for="priceNameWeapon">Arme</label>
+            <select id="priceNameWeapon">
+              <option value="">-- Sélectionner --</option>
+              <optgroup label="Pistolets">
+                <option>Pistolet SNS</option>
+                <option>Pistolet céramique</option>
+                <option>Pistolet de combat</option>
+                <option>Pistolet 8x3m</option>
+                <option>Pistolet Lourd</option>
+                <option>Pistolet MK2</option>
+                <option>Pistolet Cal.50</option>
+                <option>Pistolet automatique Tec9</option>
+              </optgroup>
+              <optgroup label="SMG / Micro-SMG">
+                <option>Skorpion (mini-smg)</option>
+                <option>Uzi (micro-smg)</option>
+                <option>PDW de Combat</option>
+                <option>TMP</option>
+                <option>SMG d'assaut</option>
+              </optgroup>
+              <optgroup label="Fusils / Assaut">
+                <option>AK-U</option>
+                <option>Gusenberg</option>
+              </optgroup>
+              <optgroup label="Fusils à pompe">
+                <option>Canon scié</option>
+                <option>Double canon</option>
+              </optgroup>
+              <optgroup label="MK2 / Spéciaux">
+                <option>Revolver MK2</option>
+                <option>SNS MK2</option>
+                <option>Assault MK2</option>
+                <option>Pompe MK2</option>
+                <option>Revolver Navy</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="priceCategory">Catégorie</label>
+            <select id="priceCategory" required>
+              <option value="Armes">Armes</option>
+              <option value="Business">Business</option>
+              <option value="Véhicules">Véhicules</option>
+              <option value="Services">Services</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="priceBuy">Prix achat ($)</label>
+            <input type="number" id="priceBuy" min="0" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label for="priceSell">Prix revente ($)</label>
+            <input type="number" id="priceSell" min="0" placeholder="0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="priceUnit">Unité</label>
+          <select id="priceUnit">
+            <option value="unité">Par unité</option>
+            <option value="lot">Par lot</option>
+            <option value="run">Par run</option>
+            <option value="contrat">Par contrat</option>
+            <option value="heure">Par heure</option>
+            <option value="autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="priceNotes">Notes / Détails</label>
+          <textarea id="priceNotes" rows="3" placeholder="Conditions, source, contexte..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" data-modal="modalPrice">Annuler</button>
+          <button type="submit" class="btn-save">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== MODAL MEMBRE ========== -->
+  <div id="modalMember" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalMemberTitle">Ajouter un membre</h3>
+        <button class="modal-close" data-modal="modalMember">&times;</button>
+      </div>
+      <form id="formMember">
+        <input type="hidden" id="memberId" />
+        <div class="form-group">
+          <label for="memberUsername">Identifiant</label>
+          <input type="text" id="memberUsername" placeholder="Pseudo du membre" required />
+        </div>
+        <div class="form-group">
+          <label for="memberPassword">Mot de passe</label>
+          <input type="text" id="memberPassword" placeholder="Mot de passe" required />
+        </div>
+        <div class="form-group">
+          <label for="memberRole">Rôle</label>
+          <select id="memberRole">
+            <option value="member">Membre</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" data-modal="modalMember">Annuler</button>
+          <button type="submit" class="btn-save">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========== MODAL CONFIRM DELETE ========== -->
+  <div id="modalConfirm" class="modal hidden">
+    <div class="modal-box modal-box-sm">
+      <div class="modal-header">
+        <h3>Confirmer la suppression</h3>
+        <button class="modal-close" data-modal="modalConfirm">&times;</button>
+      </div>
+      <p id="confirmText" style="padding: 0 0 24px; color: var(--white-dim); font-size: 0.9rem;"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" data-modal="modalConfirm">Annuler</button>
+        <button type="button" class="btn-delete" id="confirmDeleteBtn">Supprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/membres.js"></script>
+</body>
+</html>
