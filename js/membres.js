@@ -113,6 +113,12 @@ function initDashboard() {
     document.querySelector('.nav-item-admin').classList.remove('hidden');
   }
 
+  const SECTION_LABELS = {
+    compta: 'Comptabilité', armurerie: 'Armurerie',
+    prix: 'Infos Prix', annuaire: 'Annuaire',
+    groupes: 'Infos Groupes', membres: 'Membres'
+  };
+
   document.querySelectorAll('.nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -120,6 +126,9 @@ function initDashboard() {
       btn.classList.add('active');
       const key = btn.dataset.section;
       $('section' + key.charAt(0).toUpperCase() + key.slice(1)).classList.add('active');
+      const titleEl = $('mobileSectionTitle');
+      if (titleEl) titleEl.textContent = SECTION_LABELS[key] || '';
+      closeSidebar();
     });
   });
 
@@ -695,6 +704,34 @@ $('confirmDeleteBtn').addEventListener('click', async () => {
   _deleteTarget = null;
   closeModal('modalConfirm');
 });
+
+/* ====================================
+   MOBILE SIDEBAR TOGGLE
+   ==================================== */
+function openSidebar() {
+  const sidebar  = $('sidebar');
+  const backdrop = $('sidebarBackdrop');
+  const toggle   = $('sidebarToggle');
+  if (sidebar)  sidebar.classList.add('open');
+  if (backdrop) backdrop.classList.add('visible');
+  if (toggle)   toggle.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSidebar() {
+  const sidebar  = $('sidebar');
+  const backdrop = $('sidebarBackdrop');
+  const toggle   = $('sidebarToggle');
+  if (sidebar)  sidebar.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('visible');
+  if (toggle)   toggle.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+const sidebarToggle  = $('sidebarToggle');
+const sidebarBackdrop = $('sidebarBackdrop');
+if (sidebarToggle)   sidebarToggle.addEventListener('click', openSidebar);
+if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeSidebar);
 
 /* ====================================
    INIT

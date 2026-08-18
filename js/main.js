@@ -5,10 +5,20 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   /* ---------- NAVBAR SCROLL ---------- */
-  const navbar = document.getElementById('navbar');
+  const navbar   = document.getElementById('navbar');
+  const backTop  = document.getElementById('backToTop');
+  let scrollTicking = false;
+
   window.addEventListener('scroll', () => {
-    navbar.classList.toggle('scrolled', window.scrollY > 60);
-    document.getElementById('backToTop').classList.toggle('visible', window.scrollY > 400);
+    if (!scrollTicking) {
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        navbar.classList.toggle('scrolled', y > 60);
+        backTop.classList.toggle('visible', y > 400);
+        scrollTicking = false;
+      });
+      scrollTicking = true;
+    }
   }, { passive: true });
 
   /* ---------- MOBILE MENU ---------- */
@@ -40,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ---------- BACK TO TOP ---------- */
-  document.getElementById('backToTop').addEventListener('click', () => {
+  backTop.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
@@ -139,14 +149,16 @@ document.addEventListener('DOMContentLoaded', () => {
   lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
 
-  /* ---------- RANK CARDS HOVER SOUND EFFECT (visual) ---------- */
-  document.querySelectorAll('.rank-card').forEach(card => {
-    card.addEventListener('mouseenter', () => {
-      card.style.transition = 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease';
+  /* ---------- RANK CARDS — hover accéléré (desktop uniquement) ---------- */
+  if (window.matchMedia('(hover: hover)').matches) {
+    document.querySelectorAll('.rank-card').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        card.style.transition = 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease';
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transition = '';
+      });
     });
-    card.addEventListener('mouseleave', () => {
-      card.style.transition = '';
-    });
-  });
+  }
 
 });

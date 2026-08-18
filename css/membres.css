@@ -897,28 +897,176 @@ tbody td {
 .btn-delete:hover { background: var(--red); }
 
 /* ====================================
+   MOBILE TOPBAR
+   ==================================== */
+.mobile-topbar {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: var(--black-soft);
+  border-bottom: 1px solid var(--gray);
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 200;
+  gap: 12px;
+}
+
+.sidebar-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--white);
+  transition: transform var(--transition), opacity var(--transition);
+  border-radius: 2px;
+}
+
+.sidebar-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.sidebar-toggle.open span:nth-child(2) { opacity: 0; }
+.sidebar-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+.mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.mobile-brand img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(192,57,43,0.4));
+}
+
+.mobile-brand span {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+}
+
+.mobile-brand em {
+  font-style: normal;
+  color: var(--red);
+}
+
+.mobile-section-title {
+  font-family: var(--font-sub);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--red);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Backdrop */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 149;
+  backdrop-filter: blur(2px);
+}
+
+.sidebar-backdrop.visible { display: block; }
+
+/* ====================================
    RESPONSIVE
    ==================================== */
 @media (max-width: 900px) {
+  /* Topbar visible */
+  .mobile-topbar { display: flex; }
+
+  /* Sidebar devient overlay */
   .sidebar {
-    width: 60px;
-    min-width: 60px;
+    position: fixed;
+    top: 0; left: -280px;
+    width: 260px;
+    min-width: 260px;
+    height: 100vh;
+    z-index: 150;
+    transition: left var(--transition);
+    box-shadow: 4px 0 30px rgba(0,0,0,0.5);
   }
+
+  .sidebar.open { left: 0; }
+
+  /* Rétablir les labels cachés */
   .sidebar-brand div,
   .nav-item span,
   .sidebar-sub,
-  .logout-btn span { display: none; }
-  .sidebar-brand { justify-content: center; padding: 16px; }
-  .nav-item { justify-content: center; padding: 12px; }
-  .logout-btn { justify-content: center; padding: 10px; }
-  .main-content { margin-left: 60px; padding: 24px 16px; }
-  .summary-cards { grid-template-columns: 1fr; }
+  .logout-btn span { display: initial; }
+
+  .sidebar-brand { justify-content: flex-start; padding: 24px 20px; }
+  .nav-item { justify-content: flex-start; padding: 12px 14px; }
+  .logout-btn { justify-content: flex-start; padding: 10px 14px; }
+
+  /* Main content plein écran */
+  .main-content {
+    margin-left: 0;
+    padding: 72px 16px 24px;
+  }
+
+  .summary-cards { grid-template-columns: 1fr; gap: 10px; }
   .form-row { grid-template-columns: 1fr; }
+  .groups-cards { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {
-  .main-content { padding: 16px 12px; }
-  .section-header { flex-direction: column; align-items: flex-start; }
-  .table-toolbar { flex-direction: column; align-items: flex-start; }
+  /* Tables scrollables horizontalement */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 600px; }
+
+  /* Section header stack */
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .btn-add { width: 100%; text-align: center; }
+
+  /* Toolbar stack */
+  .table-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .filter-tabs { flex-wrap: wrap; }
   .search-input { width: 100%; }
+
+  /* Modal plein écran sur mobile */
+  .modal { align-items: flex-end; padding: 0; }
+  .modal-box {
+    max-width: 100%;
+    width: 100%;
+    border-radius: var(--radius) var(--radius) 0 0;
+    max-height: 90vh;
+    padding: 24px 20px;
+  }
+  .modal-box-sm { max-height: 60vh; }
+  .modal-actions { flex-direction: column; }
+  .btn-cancel, .btn-save, .btn-delete { width: 100%; text-align: center; }
+
+  /* Login card */
+  .login-card { padding: 32px 24px; }
+
+  /* Summary cards */
+  .summary-cards { grid-template-columns: repeat(2, 1fr); }
+  .summary-cards .summary-card:first-child { grid-column: 1 / -1; }
+  .card-value { font-size: 1.5rem; }
+
+  /* Phone/business entries */
+  .phone-entry { flex-wrap: wrap; }
+  .phone-entry .phone-input,
+  .phone-entry .phone-number-input { width: calc(50% - 20px); }
+
+  /* Group cards */
+  .group-card-header { flex-direction: column; gap: 8px; }
 }

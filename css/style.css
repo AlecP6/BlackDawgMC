@@ -1481,3 +1481,54 @@ button { cursor: pointer; border: none; background: none; }
   .recruitment-form { padding: 24px; }
   .about-stats { flex-direction: column; gap: 16px; }
 }
+
+/* ====================================
+   OPTIMISATIONS MOBILE (ANTI-FREEZE)
+   ==================================== */
+@media (max-width: 768px) {
+  /* Supprime la texture SVG feTurbulence — très coûteuse sur mobile */
+  .hero::before { display: none; }
+
+  /* Remplace l'animation drop-shadow infinie par une version statique */
+  .hero-logo {
+    animation: fadeUp 0.9s ease 0.1s both;
+    filter: drop-shadow(0 0 30px rgba(192,57,43,0.5));
+  }
+
+  /* Désactive les transitions de filtre coûteuses sur les images de galerie */
+  .gallery-item img {
+    transition: transform 0.4s ease;
+    filter: none !important;
+  }
+
+  /* Réduit les transitions lourdes sur cartes */
+  .rank-card,
+  .rule-item,
+  .value-item {
+    transition: border-color var(--transition);
+    transform: none !important;
+  }
+
+  /* Logo about — filtre statique plus léger */
+  .about-patch {
+    filter: drop-shadow(0 0 20px rgba(192,57,43,0.4));
+    transition: none;
+  }
+  .about-patch:hover { filter: drop-shadow(0 0 20px rgba(192,57,43,0.4)); }
+
+  /* Les boutons ne lèvent plus sur hover (pas de hover sur mobile) */
+  .btn-primary:hover,
+  .btn-secondary:hover { transform: none; }
+}
+
+/* ====================================
+   RESPECT DES PRÉFÉRENCES ANIMATIONS
+   ==================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal { opacity: 1; transform: none; }
+}
