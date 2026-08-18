@@ -1024,11 +1024,62 @@ tbody td {
 }
 
 @media (max-width: 600px) {
-  /* Tables scrollables horizontalement */
-  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { min-width: 600px; }
+  /* ---- TABLES → CARTES (zéro scroll horizontal) ---- */
+  .table-wrap {
+    overflow-x: visible;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+  }
 
-  /* Section header stack */
+  table { display: block; }
+  table thead { display: none; }
+  table tbody { display: block; }
+
+  table tr {
+    display: block;
+    margin-bottom: 10px;
+    border: 1px solid var(--gray);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    background: var(--dark);
+  }
+
+  table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.84rem;
+    gap: 10px;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  table td:last-child { border-bottom: none; padding-bottom: 2px; }
+
+  table td::before {
+    content: attr(data-label);
+    font-family: var(--font-sub);
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gray-light);
+    flex-shrink: 0;
+    text-align: left;
+    min-width: 72px;
+  }
+
+  /* Cellule Actions : centrée, sans label */
+  table td[data-label="Actions"] {
+    justify-content: flex-end;
+    padding-top: 8px;
+  }
+  table td[data-label="Actions"]::before { display: none; }
+
+  /* ---- SECTION HEADER ---- */
   .section-header {
     flex-direction: column;
     align-items: flex-start;
@@ -1036,37 +1087,40 @@ tbody td {
   }
   .btn-add { width: 100%; text-align: center; }
 
-  /* Toolbar stack */
+  /* ---- TOOLBAR ---- */
   .table-toolbar { flex-direction: column; align-items: stretch; gap: 10px; }
-  .filter-tabs { flex-wrap: wrap; }
+  .filter-tabs { flex-wrap: wrap; gap: 6px; }
+  .filter-tab { flex: 1; min-width: 0; text-align: center; }
   .search-input { width: 100%; }
 
-  /* Modal plein écran sur mobile */
+  /* ---- MODALS (bottom sheet) ---- */
   .modal { align-items: flex-end; padding: 0; }
   .modal-box {
     max-width: 100%;
     width: 100%;
     border-radius: var(--radius) var(--radius) 0 0;
-    max-height: 90vh;
+    max-height: 92vh;
     padding: 24px 20px;
   }
   .modal-box-sm { max-height: 60vh; }
-  .modal-actions { flex-direction: column; }
+  .modal-actions { flex-direction: column; gap: 8px; }
   .btn-cancel, .btn-save, .btn-delete { width: 100%; text-align: center; }
 
-  /* Login card */
+  /* ---- LOGIN ---- */
   .login-card { padding: 32px 24px; }
 
-  /* Summary cards */
-  .summary-cards { grid-template-columns: repeat(2, 1fr); }
+  /* ---- SUMMARY CARDS ---- */
+  .summary-cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .summary-cards .summary-card:first-child { grid-column: 1 / -1; }
   .card-value { font-size: 1.5rem; }
 
-  /* Phone/business entries */
-  .phone-entry { flex-wrap: wrap; }
-  .phone-entry .phone-input,
-  .phone-entry .phone-number-input { width: calc(50% - 20px); }
-
-  /* Group cards */
+  /* ---- GROUPS CARDS ---- */
+  .groups-cards { grid-template-columns: 1fr; }
   .group-card-header { flex-direction: column; gap: 8px; }
+
+  /* ---- PHONE / BUSINESS ENTRIES ---- */
+  .phone-entry { flex-wrap: wrap; gap: 6px; }
+  .phone-entry .phone-input { flex: 1; min-width: 80px; }
+  .phone-entry .phone-number-input { flex: 2; min-width: 100px; }
+  .business-entry { flex-wrap: wrap; }
 }

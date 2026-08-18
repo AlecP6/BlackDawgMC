@@ -207,13 +207,13 @@ async function renderCompta() {
     const d = new Date(t.date);
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${d.toLocaleDateString('fr-FR')}</td>
-      <td>${escHtml(t.description)}</td>
-      <td>${escHtml(t.category)}</td>
-      <td><span class="badge badge-${t.type}">${t.type === 'income' ? 'Entrée' : 'Sortie'}</span></td>
-      <td class="${t.type === 'income' ? 'amount-positive' : 'amount-negative'}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</td>
-      <td><span class="author-tag">${escHtml(t.created_by||'—')}</span>${t.updated_by?`<span class="edit-tag"> ✎ ${escHtml(t.updated_by)}</span>`:''}</td>
-      <td><div class="action-btns">${canEdit
+      <td data-label="Date">${d.toLocaleDateString('fr-FR')}</td>
+      <td data-label="Description">${escHtml(t.description)}</td>
+      <td data-label="Catégorie">${escHtml(t.category)}</td>
+      <td data-label="Type"><span class="badge badge-${t.type}">${t.type === 'income' ? 'Entrée' : 'Sortie'}</span></td>
+      <td data-label="Montant" class="${t.type === 'income' ? 'amount-positive' : 'amount-negative'}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</td>
+      <td data-label="Ajouté par"><span class="author-tag">${escHtml(t.created_by||'—')}</span>${t.updated_by?`<span class="edit-tag"> ✎ ${escHtml(t.updated_by)}</span>`:''}</td>
+      <td data-label="Actions"><div class="action-btns">${canEdit
         ? `<button class="btn-edit" onclick="editTransaction('${t.id}')">Modifier</button><button class="btn-del" onclick="confirmDelete('transaction','${t.id}','${escHtml(t.description)}')">Suppr.</button>`
         : '<span style="color:var(--gray-light);font-size:0.75rem">—</span>'}</div></td>`;
     tbody.appendChild(tr);
@@ -299,14 +299,14 @@ async function renderArms() {
     const statusBadge = { 'Disponible':'badge-ok','Assignée':'badge-assign','Hors service':'badge-broken' }[w.status] || 'badge-ok';
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>${escHtml(w.name)}</strong></td>
-      <td>${escHtml(w.category)}</td>
-      <td>${escHtml(w.caliber||'—')}</td>
-      <td class="${w.qty<=2?'qty-low':'qty-ok'}">${w.qty}${w.qty<=2?' ⚠':''}</td>
-      <td><span class="badge ${statusBadge}">${escHtml(w.status)}</span></td>
-      <td style="font-size:0.8rem;color:var(--white-dim)">${escHtml(w.notes||'—')}</td>
-      <td><span class="author-tag">${escHtml(w.created_by||'—')}</span>${w.updated_by?`<span class="edit-tag"> ✎ ${escHtml(w.updated_by)}</span>`:''}</td>
-      <td><div class="action-btns">${canEdit
+      <td data-label="Arme"><strong>${escHtml(w.name)}</strong></td>
+      <td data-label="Catégorie">${escHtml(w.category)}</td>
+      <td data-label="Calibre">${escHtml(w.caliber||'—')}</td>
+      <td data-label="Quantité" class="${w.qty<=2?'qty-low':'qty-ok'}">${w.qty}${w.qty<=2?' ⚠':''}</td>
+      <td data-label="État"><span class="badge ${statusBadge}">${escHtml(w.status)}</span></td>
+      <td data-label="Notes" style="font-size:0.8rem;color:var(--white-dim)">${escHtml(w.notes||'—')}</td>
+      <td data-label="Ajouté par"><span class="author-tag">${escHtml(w.created_by||'—')}</span>${w.updated_by?`<span class="edit-tag"> ✎ ${escHtml(w.updated_by)}</span>`:''}</td>
+      <td data-label="Actions"><div class="action-btns">${canEdit
         ? `<button class="btn-edit" onclick="editWeapon('${w.id}')">Modifier</button><button class="btn-del" onclick="confirmDelete('weapon','${w.id}','${escHtml(w.name)}')">Suppr.</button>`
         : '<span style="color:var(--gray-light);font-size:0.75rem">—</span>'}</div></td>`;
     tbody.appendChild(tr);
@@ -391,14 +391,14 @@ async function renderPrices() {
     const margin = (p.price_sell && p.price_buy) ? Number(p.price_sell) - Number(p.price_buy) : null;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>${escHtml(p.name)}</strong></td>
-      <td><span class="badge ${PRICE_CAT_COLORS[p.category]||''}">${escHtml(p.category)}</span></td>
-      <td style="color:var(--red)">${p.price_buy ? fmt(p.price_buy) : '—'}</td>
-      <td style="color:var(--green)">${p.price_sell ? fmt(p.price_sell) : '—'}${margin!==null?`<span class="margin-tag">+${fmt(margin)}</span>`:''}</td>
-      <td style="font-size:0.8rem;color:var(--white-dim)">${escHtml(p.unit)}</td>
-      <td style="font-size:0.8rem;color:var(--white-dim)">${escHtml(p.notes||'—')}</td>
-      <td><span class="author-tag">${escHtml(p.created_by||'—')}</span>${p.updated_by?`<span class="edit-tag"> ✎ ${escHtml(p.updated_by)}</span>`:''}</td>
-      <td><div class="action-btns">${canEdit
+      <td data-label="Nom"><strong>${escHtml(p.name)}</strong></td>
+      <td data-label="Catégorie"><span class="badge ${PRICE_CAT_COLORS[p.category]||''}">${escHtml(p.category)}</span></td>
+      <td data-label="Prix achat" style="color:var(--red)">${p.price_buy ? fmt(p.price_buy) : '—'}</td>
+      <td data-label="Prix revente" style="color:var(--green)">${p.price_sell ? fmt(p.price_sell) : '—'}${margin!==null?`<span class="margin-tag">+${fmt(margin)}</span>`:''}</td>
+      <td data-label="Unité" style="font-size:0.8rem;color:var(--white-dim)">${escHtml(p.unit)}</td>
+      <td data-label="Notes" style="font-size:0.8rem;color:var(--white-dim)">${escHtml(p.notes||'—')}</td>
+      <td data-label="Ajouté par"><span class="author-tag">${escHtml(p.created_by||'—')}</span>${p.updated_by?`<span class="edit-tag"> ✎ ${escHtml(p.updated_by)}</span>`:''}</td>
+      <td data-label="Actions"><div class="action-btns">${canEdit
         ? `<button class="btn-edit" onclick="editPrice('${p.id}')">Modifier</button><button class="btn-del" onclick="confirmDelete('price','${p.id}','${escHtml(p.name)}')">Suppr.</button>`
         : '<span style="color:var(--gray-light);font-size:0.75rem">—</span>'}</div></td>`;
     tbody.appendChild(tr);
@@ -466,12 +466,12 @@ async function renderContacts() {
     const canEdit = currentUser.role === 'admin' || c.created_by === currentUser.username;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>${escHtml(c.name)}</strong></td>
-      <td><span class="badge ${GRADE_BADGE[c.grade]||''}">${escHtml(c.grade)}</span></td>
-      <td><span class="phone-number">${escHtml(c.phone)}</span></td>
-      <td style="font-size:0.8rem;color:var(--white-dim)">${escHtml(c.notes||'—')}</td>
-      <td><span class="author-tag">${escHtml(c.created_by||'—')}</span>${c.updated_by?`<span class="edit-tag"> ✎ ${escHtml(c.updated_by)}</span>`:''}</td>
-      <td><div class="action-btns">${canEdit
+      <td data-label="Nom"><strong>${escHtml(c.name)}</strong></td>
+      <td data-label="Grade"><span class="badge ${GRADE_BADGE[c.grade]||''}">${escHtml(c.grade)}</span></td>
+      <td data-label="Numéro"><span class="phone-number">${escHtml(c.phone)}</span></td>
+      <td data-label="Notes" style="font-size:0.8rem;color:var(--white-dim)">${escHtml(c.notes||'—')}</td>
+      <td data-label="Ajouté par"><span class="author-tag">${escHtml(c.created_by||'—')}</span>${c.updated_by?`<span class="edit-tag"> ✎ ${escHtml(c.updated_by)}</span>`:''}</td>
+      <td data-label="Actions"><div class="action-btns">${canEdit
         ? `<button class="btn-edit" onclick="editContact('${c.id}')">Modifier</button><button class="btn-del" onclick="confirmDelete('contact','${c.id}','${escHtml(c.name)}')">Suppr.</button>`
         : '<span style="color:var(--gray-light);font-size:0.75rem">—</span>'}</div></td>`;
     tbody.appendChild(tr);
@@ -641,9 +641,9 @@ async function renderMembers() {
     const isSelf = u.id === currentUser.id;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><span class="author-tag">${escHtml(u.username)}</span></td>
-      <td><span class="badge ${u.role==='admin'?'badge-assign':'badge-ok'}">${u.role==='admin'?'Admin':'Membre'}</span></td>
-      <td><div class="action-btns">
+      <td data-label="Identifiant"><span class="author-tag">${escHtml(u.username)}</span></td>
+      <td data-label="Rôle"><span class="badge ${u.role==='admin'?'badge-assign':'badge-ok'}">${u.role==='admin'?'Admin':'Membre'}</span></td>
+      <td data-label="Actions"><div class="action-btns">
         <button class="btn-edit" onclick="editMember('${u.id}')">Modifier</button>
         ${!isSelf ? `<button class="btn-del" onclick="confirmDelete('member','${u.id}','${escHtml(u.username)}')">Suppr.</button>` : ''}
       </div></td>`;
